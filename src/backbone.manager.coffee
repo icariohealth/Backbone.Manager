@@ -50,6 +50,9 @@
       @initialize options
       return
 
+    # Empty by default. Override with custom logic
+    initialize: ->
+
     _parseStates: ->
       _.each _.keys(@states), (stateKey) =>
         stateOptions = @states[stateKey]
