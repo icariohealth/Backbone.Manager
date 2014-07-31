@@ -61,31 +61,36 @@
           throw new Error stateKey+' needs transitionMethod definitions'
 
         if stateOptions.url
-          stateOptions._urlParams = cachedParamMatcher.exec(stateOptions.url).slice(1)
-          stateOptions._urlAsTemplate = _.template stateOptions.url, null, {interpolate: cachedParamMatcher}
-          stateOptions._urlAsRegex = stateOptions.url
+          if _.isRegExp stateOptions.url
+            throw new Error stateKey+' is not allowed to have a RegExp url'
 
-          unless _.isRegExp(stateOptions._urlAsRegex)
-            stateOptions._urlAsRegex = @router._routeToRegExp stateOptions._urlAsRegex
+          stateOptions._urlParams = while matches = cachedParamMatcher.exec(stateOptions.url)
+            matches[1]
+          stateOptions._urlAsTemplate = _.template stateOptions.url, null, {interpolate: cachedParamMatcher}
+          stateOptions._urlAsRegex = @router._routeToRegExp stateOptions.url
 
           # Register the urls into the router
           @router.route stateOptions._urlAsRegex, stateKey, =>
-
-            # Only run loadCallback if this is truly the very first callback from the pageload popstate
-            # In other cases, Backbone.history has already potentially changed the url for router nav,
-            # so we check against it
-            if onloadUrl and window?.location.href is onloadUrl # todo a: verify this works cross browser & w/ hash
-              @_handleLoadCallback stateKey, stateOptions, arguments
-            else
-              @_handleTransitionCallback stateKey, stateOptions, arguments, historyHasUpdated = true
-
-            onloadUrl = null
+            @_routeCallbackChooser stateKey, stateOptions, arguments
             return
 
         # Start listening for our state transition calls
         @listenTo managerQueue, stateKey, (args) =>
           @_handleTransitionCallback stateKey, stateOptions, args
           return
+      return
+
+    _routeCallbackChooser: (stateKey, stateOptions, clearOnloadUrl = true) ->
+
+      # Only run loadCallback if this is truly the very first callback from the pageload popstate
+      # In other cases, Backbone.history has already potentially changed the url for router nav,
+      # so we check against it
+      if onloadUrl and @_getWindowHref() is onloadUrl # todo a: verify this works cross browser & w/ hash
+        @_handleLoadCallback stateKey, stateOptions, arguments
+      else
+        @_handleTransitionCallback stateKey, stateOptions, arguments, historyHasUpdated = true
+
+      if clearOnloadUrl then onloadUrl = null
       return
 
     _handleLoadCallback: (stateKey, stateOptions, args) ->
@@ -123,7 +128,7 @@
           unless historyHasUpdated
             @router.navigate url
 
-          data = args
+          data = _.map args, String # Change to string to imitate
           data.push null # this represents the query params value, which routers always append now
 
         else if args instanceof Object # args is allowed to be an object for bb-state directives
@@ -153,12 +158,12 @@
 
     _parseEvents: ->
       _.each _.keys(@events), (eventName) =>
-        @on eventName, =>
-          eventFunction = @events[eventName]
-          @[eventFunction]()
-          return
+        @on eventName, @[@events[eventName]]
         return
       return
+
+    # for test stubs
+    _getWindowHref: -> window?.location.href
 
   Backbone.Manager = Manager
   Backbone.Manager.extend = Backbone.Model.extend # todo c: Be smarter about this later
