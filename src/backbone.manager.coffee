@@ -85,7 +85,7 @@
       # Only run loadCallback if this is truly the very first callback from the pageload popstate
       # In other cases, Backbone.history has already potentially changed the url for router nav,
       # so we check against it
-      if onloadUrl and @_getWindowHref() is onloadUrl # todo a: verify this works cross browser & w/ hash
+      if onloadUrl and @_getWindowHref() is onloadUrl # todo: verify this works cross browser & w/ hash
         @_handleLoadCallback stateKey, stateOptions, arguments
       else
         @_handleTransitionCallback stateKey, stateOptions, arguments, historyHasUpdated = true
@@ -165,21 +165,31 @@
     # for test stubs
     _getWindowHref: -> window?.location.href
 
-  Backbone.Manager = Manager
-  Backbone.Manager.extend = Backbone.Model.extend # todo c: Be smarter about this later
+    @go: (state, args) ->
+      managerQueue.trigger state, args
 
-  _watchForStateChange = ->
-    $('body').on 'click', (event) ->
-      unless event.isDefaultPrevented()
-        if $(event.target).attr('x-bb-state')
-          event.preventDefault()
-          stateInfo = $(event.target).attr('x-bb-state').split('(', 2)
-          state = stateInfo[0]
-          args = stateInfo[1].slice 0, stateInfo[1].indexOf(')')
-          managerQueue.trigger state, JSON.parse(args)
-      return
+    @extend: Backbone.Model.extend # todo: Be smarter about this later
+
+  Backbone.Manager = Manager
+
+  _watchForStateChange = (event) ->
+    unless event.isDefaultPrevented()
+      if $(event.target).attr('x-bb-state')
+        event.preventDefault()
+        stateInfo = $(event.target).attr('x-bb-state').split('(', 2)
+        state = stateInfo[0]
+        args = stateInfo[1].slice 0, stateInfo[1].indexOf(')')
+        managerQueue.trigger state, JSON.parse(args)
+    return
 
   # Bind watcher to onReady
-  $ _watchForStateChange
+  $ ->
+    $('body').on 'click', (event) -> _watchForStateChange event
+
+  `/* gulp-strip-release */`
+  Backbone.Manager._testAccessor =
+    managerQueue: managerQueue
+    _watchForStateChange: _watchForStateChange
+  `/* end-gulp-strip-release */`
   return
 )(Backbone, _, $, window)

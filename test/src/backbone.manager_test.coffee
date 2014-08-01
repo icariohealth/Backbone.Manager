@@ -1,5 +1,10 @@
 expect = chai.expect
 
+stubEventMethod = (method) ->
+  cachedMethod = Backbone.Events[method]
+  @sinon.stub Backbone.Events, method, ->
+    cachedMethod.apply @, arguments
+
 # Keep '@sinon' sandboxed to every test, use 'sinon' to bypass
 beforeEach ->
   @sinon = sinon.sandbox.create()
@@ -7,6 +12,15 @@ afterEach ->
   @sinon.restore()
 
 describe 'Backbone.Manager', ->
+  describe 'go()', ->
+    it 'should call the managerQueue with state change request', ->
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager.go 'test', [1,2]
+
+      expect(triggerStub).to.have.been.calledWith 'test', [1,2]
+
+describe 'Backbone.Manager.prototype', ->
   beforeEach ->
     @router = new Backbone.Router()
   afterEach ->
@@ -325,3 +339,12 @@ describe 'Backbone.Manager', ->
       )(@router)
 
       expect(onStub).to.have.been.calledWith 'testEvent', manager.testFunc
+
+describe 'Backbone.Manager Closure Scope', ->
+  describe '_watchForStateChange()', ->
+    it 'should do nothing if event is marked preventDefault', ->
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager._testAccessor._watchForStateChange {isDefaultPrevented: -> true}
+
+      expect(triggerStub).to.not.have.been.called
