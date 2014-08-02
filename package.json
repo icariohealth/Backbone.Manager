@@ -1,6 +1,6 @@
 {
   "name": "backbone.manager",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "gulpfile.js",
   "dependencies": {},
@@ -10,6 +10,7 @@
     "gulp": "^3.8.6",
     "gulp-coffee": "^2.1.1",
     "gulp-sourcemaps": "^1.1.0",
+    "gulp-strip-code": "^0.1.2",
     "gulp-util": "^3.0.0",
     "jquery": "^2.1.1",
     "mocha": "^1.21.3",

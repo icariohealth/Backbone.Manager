@@ -3,6 +3,7 @@
   onloadUrl = window.location.href
 
   cachedParamMatcher = /\:([^:)/]+)/g
+  cachedPathSegmentMatcher = /([^/]+)/g
 
   # Manager(router) - router will be where the history navigation is pushed through
   #
@@ -170,21 +171,50 @@
 
     @extend: Backbone.Model.extend # todo: Be smarter about this later
 
+    @config:
+      # Expose in config to allow override
+      # Expected to return {state: 'state', args:[]}
+      urlToStateParser: (urlPath) ->
+        stateObj =
+          state: ''
+          args: []
+        segments = while matches = cachedPathSegmentMatcher.exec(urlPath)
+          matches[1]
+
+        _.each segments, (segment, i) ->
+          if i % 2
+            stateObj.args.push segments[i]
+            stateObj.state += 'detail'
+          else
+            stateObj.state += segments[i]
+
+          unless i is segments.length-1
+            stateObj.state += '.'
+
+        stateObj
+
   Backbone.Manager = Manager
 
   _watchForStateChange = (event) ->
     unless event.isDefaultPrevented()
-      if $(event.target).attr('x-bb-state')
-        event.preventDefault()
-        stateInfo = $(event.target).attr('x-bb-state').split('(', 2)
+      stateAttr = $(event.target).attr('x-bb-state')
+      event.preventDefault()
+
+      if stateAttr is null
+        # use convention to find state
+        parsed = Backbone.Manager.config.urlToStateParser event.target.href.pathname
+        state = parsed.state
+        args = parsed.args
+      else
+        # parse the passed info
+        stateInfo = stateAttr.split('(', 2)
         state = stateInfo[0]
-        args = stateInfo[1].slice 0, stateInfo[1].indexOf(')')
-        managerQueue.trigger state, JSON.parse(args)
+        args = JSON.parse(stateInfo[1].slice 0, stateInfo[1].indexOf(')'))
+
+      managerQueue.trigger state, args
     return
 
-  # Bind watcher to onReady
-  $ ->
-    $('body').on 'click', (event) -> _watchForStateChange event
+  $('document').on 'click', 'a[x-bb-state]', (event) -> _watchForStateChange event
 
   `/* gulp-strip-release */`
   Backbone.Manager._testAccessor =

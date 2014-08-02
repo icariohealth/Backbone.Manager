@@ -1,8 +1,9 @@
 (function(Backbone, _, $, window) {
-  var Manager, cachedParamMatcher, managerQueue, onloadUrl, _watchForStateChange;
+  var Manager, cachedParamMatcher, cachedPathSegmentMatcher, managerQueue, onloadUrl, _watchForStateChange;
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
   cachedParamMatcher = /\:([^:)/]+)/g;
+  cachedPathSegmentMatcher = /([^/]+)/g;
   Manager = (function() {
     Manager.prototype.states = {};
 
@@ -135,26 +136,59 @@
 
     Manager.extend = Backbone.Model.extend;
 
+    Manager.config = {
+      urlToStateParser: function(urlPath) {
+        var matches, segments, stateObj;
+        stateObj = {
+          state: '',
+          args: []
+        };
+        segments = (function() {
+          var _results;
+          _results = [];
+          while (matches = cachedPathSegmentMatcher.exec(urlPath)) {
+            _results.push(matches[1]);
+          }
+          return _results;
+        })();
+        _.each(segments, function(segment, i) {
+          if (i % 2) {
+            stateObj.args.push(segments[i]);
+            stateObj.state += 'detail';
+          } else {
+            stateObj.state += segments[i];
+          }
+          if (i !== segments.length - 1) {
+            return stateObj.state += '.';
+          }
+        });
+        return stateObj;
+      }
+    };
+
     return Manager;
 
   })();
   Backbone.Manager = Manager;
   _watchForStateChange = function(event) {
-    var args, state, stateInfo;
+    var args, parsed, state, stateAttr, stateInfo;
     if (!event.isDefaultPrevented()) {
-      if ($(event.target).attr('x-bb-state')) {
-        event.preventDefault();
-        stateInfo = $(event.target).attr('x-bb-state').split('(', 2);
+      stateAttr = $(event.target).attr('x-bb-state');
+      event.preventDefault();
+      if (stateAttr === null) {
+        parsed = Backbone.Manager.config.urlToStateParser(event.target.href.pathname);
+        state = parsed.state;
+        args = parsed.args;
+      } else {
+        stateInfo = stateAttr.split('(', 2);
         state = stateInfo[0];
-        args = stateInfo[1].slice(0, stateInfo[1].indexOf(')'));
-        managerQueue.trigger(state, JSON.parse(args));
+        args = JSON.parse(stateInfo[1].slice(0, stateInfo[1].indexOf(')')));
       }
+      managerQueue.trigger(state, args);
     }
   };
-  $(function() {
-    return $('body').on('click', function(event) {
-      return _watchForStateChange(event);
-    });
+  $('document').on('click', 'a[x-bb-state]', function(event) {
+    return _watchForStateChange(event);
   });
 ;
 })(Backbone, _, $, window);

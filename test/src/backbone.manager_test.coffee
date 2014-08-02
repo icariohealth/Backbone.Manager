@@ -20,6 +20,27 @@ describe 'Backbone.Manager', ->
 
       expect(triggerStub).to.have.been.calledWith 'test', [1,2]
 
+  describe 'config.urlToStateParser', ->
+    it 'should build a simple state from simple plural url', ->
+      stateObject = Backbone.Manager.config.urlToStateParser('/test')
+
+      expect(stateObject.state).to.equal 'test'
+
+    it 'should build a detail state from simple url with id', ->
+      stateObject = Backbone.Manager.config.urlToStateParser('/test/1')
+
+      expect(stateObject.state).to.equal 'test.detail'
+
+    it 'should build a complex detail state from complex url with multiple ids', ->
+      stateObject = Backbone.Manager.config.urlToStateParser('/testa/1/testb/2')
+
+      expect(stateObject.state).to.equal 'testa.detail.testb.detail'
+
+    it 'should return args with ids from url with multiple ids, in order', ->
+      stateObject = Backbone.Manager.config.urlToStateParser('/a/1/b/2/c/3/d/4')
+
+      expect(stateObject.args).to.eql ['1','2','3','4']
+
 describe 'Backbone.Manager.prototype', ->
   beforeEach ->
     @router = new Backbone.Router()
