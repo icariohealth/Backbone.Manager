@@ -95,14 +95,12 @@
       return
 
     _handleLoadCallback: (stateKey, stateOptions, args) ->
-      unless stateOptions.loadMethod
-        throw new Error stateKey+' is being triggered for load, but no loadMethod has been defined'
-
-      @trigger 'pre-load'
-      @trigger 'pre-load:'+stateKey, args
-      @[stateOptions.loadMethod].apply this, args
-      @trigger 'post-load:'+stateKey, args
-      @trigger 'post-load'
+      if stateOptions.loadMethod
+        @trigger 'pre-load'
+        @trigger 'pre-load:'+stateKey, args
+        @[stateOptions.loadMethod].apply this, args
+        @trigger 'post-load:'+stateKey, args
+        @trigger 'post-load'
       return
 
     # Reached in two ways:

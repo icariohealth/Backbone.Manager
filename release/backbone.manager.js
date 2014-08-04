@@ -66,14 +66,13 @@
     };
 
     Manager.prototype._handleLoadCallback = function(stateKey, stateOptions, args) {
-      if (!stateOptions.loadMethod) {
-        throw new Error(stateKey + ' is being triggered for load, but no loadMethod has been defined');
+      if (stateOptions.loadMethod) {
+        this.trigger('pre-load');
+        this.trigger('pre-load:' + stateKey, args);
+        this[stateOptions.loadMethod].apply(this, args);
+        this.trigger('post-load:' + stateKey, args);
+        this.trigger('post-load');
       }
-      this.trigger('pre-load');
-      this.trigger('pre-load:' + stateKey, args);
-      this[stateOptions.loadMethod].apply(this, args);
-      this.trigger('post-load:' + stateKey, args);
-      this.trigger('post-load');
     };
 
     Manager.prototype._handleTransitionCallback = function(stateKey, stateOptions, args, historyHasUpdated) {

@@ -174,10 +174,10 @@ describe 'Backbone.Manager.prototype', ->
       expect(loadCallbackStub).to.have.been.calledOnce
 
   describe '_handleLoadCallback()', ->
-    it "should throw error if loadMethod for a state isn't defined", ->
+    it "should not throw error if loadMethod for a state isn't defined", ->
       manager = new Backbone.Manager @router
 
-      expect(-> manager._handleLoadCallback()).to.throw /loadMethod/
+      expect(-> manager._handleLoadCallback('', {})).not.to.throw Error
 
     it 'should trigger generic and specific pre-events in that order', ->
       manager = new (Backbone.Manager.extend
