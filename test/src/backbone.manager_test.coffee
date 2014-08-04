@@ -134,31 +134,36 @@ describe 'Backbone.Manager.prototype', ->
         expect(routeSpy).to.have.been.calledWith manager.states.test._urlAsRegex
 
   describe '_routeCallbackChooser()', ->
+    beforeEach ->
+      Backbone.Manager._testAccessor.overrideOnloadUrl 'http://base.com'
+
     it 'should not call loadCallback if pageload url is different from current url', ->
       manager = new (Backbone.Manager.extend
-        _getWindowHref: -> 'http://a.b'
+        _getWindowHref: -> 'http://other.com'
       )(@router)
 
       loadCallbackStub = @sinon.stub manager, '_handleLoadCallback'
       @sinon.stub manager, '_handleTransitionCallback'
 
-      manager._routeCallbackChooser '', {}, false
+      manager._routeCallbackChooser '', {}
 
       expect(loadCallbackStub).to.not.have.been.called
 
     it 'should call transitionCallback if pageload url is different from current url', ->
       manager = new (Backbone.Manager.extend
-        _getWindowHref: -> 'http://a.b'
+        _getWindowHref: -> 'http://other.com'
       )(@router)
 
       transitionCallbackStub = @sinon.stub manager, '_handleTransitionCallback'
 
-      manager._routeCallbackChooser '', {}, false
+      manager._routeCallbackChooser '', {}
 
       expect(transitionCallbackStub).to.have.been.called
 
     it 'should call loadCallback if pageload url is current url, but only once', ->
-      manager = new Backbone.Manager @router
+      manager = new (Backbone.Manager.extend
+        _getWindowHref: -> 'http://base.com'
+      )(@router)
 
       loadCallbackStub = @sinon.stub manager, '_handleLoadCallback'
       @sinon.stub manager, '_handleTransitionCallback'
@@ -369,3 +374,26 @@ describe 'Backbone.Manager Closure Scope', ->
       Backbone.Manager._testAccessor._watchForStateChange {isDefaultPrevented: -> true}
 
       expect(triggerStub).to.not.have.been.called
+
+    context 'no bb-state value', ->
+      beforeEach ->
+        @mockEvent =
+          preventDefault: ->
+          isDefaultPrevented: -> false
+          target: $("<a x-bb-state='' href='http://a.com/a/1/b/2'/>")[0]
+
+      it 'should trigger state based on convention if it exists', ->
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail'] = {}
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+        delete Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail']
+
+        expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2']
+
+      it 'should trigger the * state and pass the pathname if there are no matching states', ->
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+
+        expect(triggerStub).to.have.been.calledWith '*', ['/a/1/b/2']

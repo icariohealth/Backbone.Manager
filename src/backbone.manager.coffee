@@ -2,7 +2,7 @@
   managerQueue = _.extend {}, Backbone.Events
   onloadUrl = window.location.href
 
-  cachedParamMatcher = /\:([^:)/]+)/g
+  cachedParamMatcher = /[:*]([^:)/]+)/g
   cachedPathSegmentMatcher = /([^/]+)/g
 
   # Manager(router) - router will be where the history navigation is pushed through
@@ -81,17 +81,17 @@
           return
       return
 
-    _routeCallbackChooser: (stateKey, stateOptions, clearOnloadUrl = true) ->
+    _routeCallbackChooser: (stateKey, stateOptions, args) ->
 
       # Only run loadCallback if this is truly the very first callback from the pageload popstate
       # In other cases, Backbone.history has already potentially changed the url for router nav,
       # so we check against it
       if onloadUrl and @_getWindowHref() is onloadUrl # todo: verify this works cross browser & w/ hash
-        @_handleLoadCallback stateKey, stateOptions, arguments
+        @_handleLoadCallback stateKey, stateOptions, args
       else
-        @_handleTransitionCallback stateKey, stateOptions, arguments, historyHasUpdated = true
+        @_handleTransitionCallback stateKey, stateOptions, args, historyHasUpdated = true
 
-      if clearOnloadUrl then onloadUrl = null
+      onloadUrl = null
       return
 
     _handleLoadCallback: (stateKey, stateOptions, args) ->
@@ -200,12 +200,21 @@
       stateAttr = $(event.target).attr('x-bb-state')
       event.preventDefault()
 
-      if stateAttr is null
+      if stateAttr is ''
+
         # use convention to find state
-        parsed = Backbone.Manager.config.urlToStateParser event.target.href.pathname
-        state = parsed.state
-        args = parsed.args
+        urlParser = document.createElement 'a'
+        urlParser.href = event.target.href
+        parsed = Backbone.Manager.config.urlToStateParser urlParser.pathname
+
+        if managerQueue._events[parsed.state]
+          state = parsed.state
+          args = parsed.args
+        else
+          state = '*'
+          args = [urlParser.pathname]
       else
+
         # parse the passed info
         stateInfo = stateAttr.split('(', 2)
         state = stateInfo[0]
@@ -218,6 +227,7 @@
 
   `/* gulp-strip-release */`
   Backbone.Manager._testAccessor =
+    overrideOnloadUrl: (override) -> onloadUrl = override
     managerQueue: managerQueue
     _watchForStateChange: _watchForStateChange
   `/* end-gulp-strip-release */`

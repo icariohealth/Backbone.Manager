@@ -2,7 +2,7 @@
   var Manager, cachedParamMatcher, cachedPathSegmentMatcher, managerQueue, onloadUrl, _watchForStateChange;
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
-  cachedParamMatcher = /\:([^:)/]+)/g;
+  cachedParamMatcher = /[:*]([^:)/]+)/g;
   cachedPathSegmentMatcher = /([^/]+)/g;
   Manager = (function() {
     Manager.prototype.states = {};
@@ -55,19 +55,14 @@
       })(this));
     };
 
-    Manager.prototype._routeCallbackChooser = function(stateKey, stateOptions, clearOnloadUrl) {
+    Manager.prototype._routeCallbackChooser = function(stateKey, stateOptions, args) {
       var historyHasUpdated;
-      if (clearOnloadUrl == null) {
-        clearOnloadUrl = true;
-      }
       if (onloadUrl && this._getWindowHref() === onloadUrl) {
-        this._handleLoadCallback(stateKey, stateOptions, arguments);
+        this._handleLoadCallback(stateKey, stateOptions, args);
       } else {
-        this._handleTransitionCallback(stateKey, stateOptions, arguments, historyHasUpdated = true);
+        this._handleTransitionCallback(stateKey, stateOptions, args, historyHasUpdated = true);
       }
-      if (clearOnloadUrl) {
-        onloadUrl = null;
-      }
+      onloadUrl = null;
     };
 
     Manager.prototype._handleLoadCallback = function(stateKey, stateOptions, args) {
@@ -171,14 +166,21 @@
   })();
   Backbone.Manager = Manager;
   _watchForStateChange = function(event) {
-    var args, parsed, state, stateAttr, stateInfo;
+    var args, parsed, state, stateAttr, stateInfo, urlParser;
     if (!event.isDefaultPrevented()) {
       stateAttr = $(event.target).attr('x-bb-state');
       event.preventDefault();
-      if (stateAttr === null) {
-        parsed = Backbone.Manager.config.urlToStateParser(event.target.href.pathname);
-        state = parsed.state;
-        args = parsed.args;
+      if (stateAttr === '') {
+        urlParser = document.createElement('a');
+        urlParser.href = event.target.href;
+        parsed = Backbone.Manager.config.urlToStateParser(urlParser.pathname);
+        if (managerQueue._events[parsed.state]) {
+          state = parsed.state;
+          args = parsed.args;
+        } else {
+          state = '*';
+          args = [urlParser.pathname];
+        }
       } else {
         stateInfo = stateAttr.split('(', 2);
         state = stateInfo[0];
