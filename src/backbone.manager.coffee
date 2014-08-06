@@ -72,7 +72,7 @@
 
           # Register the urls into the router
           @router.route stateOptions._urlAsRegex, stateKey, =>
-            @_routeCallbackChooser stateKey, stateOptions, arguments
+            @_routeCallbackChooser stateKey, stateOptions, Array.apply(null, arguments)
             return
 
         # Start listening for our state transition calls
@@ -108,6 +108,8 @@
     #    a) args is an array from the route callback
     #  2) bb-state change callback
     #    a) args is what the user has provided declaratively, or it's parsed from the link url
+    #
+    # Anytime args is an array, its last value will be always assumed to be queryParams string
     _handleTransitionCallback: (stateKey, stateOptions, args, historyHasUpdated = false) ->
       @trigger 'pre-transition'
       @trigger 'pre-transition:'+stateKey
@@ -127,8 +129,8 @@
           unless historyHasUpdated
             @router.navigate url
 
-          data = _.map args, String # Change to string to imitate
-          data.push null # this represents the query params value, which routers always append now
+          data = _.map _.initial(args), String # Drop the last value, representing the queryParams
+          data.push _.last(args)               # and now re-add, avoids casting queryParam null to string
 
         else if args instanceof Object # args is allowed to be an object for bb-state directives
 
@@ -208,6 +210,7 @@
         if managerQueue._events[parsed.state]
           state = parsed.state
           args = parsed.args
+          args.push urlParser.search # Add query params, like the routers do # todo strip '?'
         else
           state = '*'
           args = [urlParser.pathname]
@@ -218,10 +221,13 @@
         state = stateInfo[0]
         args = JSON.parse(stateInfo[1].slice 0, stateInfo[1].indexOf(')'))
 
+        if args instanceof Array
+          args.push null # this represents the query params value to the callback, which routers always append now
+
       managerQueue.trigger state, args
     return
 
-  $('document').on 'click', 'a[x-bb-state]', (event) -> _watchForStateChange event
+  $(window.document).on 'click', 'a[x-bb-state]', (event) -> _watchForStateChange event
 
   `/* gulp-strip-release */`
   Backbone.Manager._testAccessor =

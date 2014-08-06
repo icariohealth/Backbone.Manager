@@ -295,7 +295,7 @@ describe 'Backbone.Manager.prototype', ->
 
           navigateStub = @sinon.stub @router, 'navigate'
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4]
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, null]
 
           expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4'
 
@@ -304,7 +304,7 @@ describe 'Backbone.Manager.prototype', ->
 
           navigateStub = @sinon.stub @router, 'navigate'
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4], historyHasUpdated = true
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4,null], historyHasUpdated = true
 
           expect(navigateStub).to.not.have.been.called
 
@@ -313,7 +313,16 @@ describe 'Backbone.Manager.prototype', ->
 
           callbackSpy = @sinon.spy manager, 'test'
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4]
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4,null]
+
+          expect(callbackSpy).to.have.been.calledWithExactly '1', '2', '3', '4', null, sinon.match.object
+
+        it 'should not hand a stringified null to callback if args had one', ->
+          manager = new @managerProto @router
+
+          callbackSpy = @sinon.spy manager, 'test'
+
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4,null]
 
           expect(callbackSpy).to.have.been.calledWithExactly '1', '2', '3', '4', null, sinon.match.object
 
@@ -389,7 +398,7 @@ describe 'Backbone.Manager Closure Scope', ->
         Backbone.Manager._testAccessor._watchForStateChange @mockEvent
         delete Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail']
 
-        expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2']
+        expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2', '']
 
       it 'should trigger the * state and pass the pathname if there are no matching states', ->
         triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
@@ -397,3 +406,17 @@ describe 'Backbone.Manager Closure Scope', ->
         Backbone.Manager._testAccessor._watchForStateChange @mockEvent
 
         expect(triggerStub).to.have.been.calledWith '*', ['/a/1/b/2']
+
+    context 'bb-state has value', ->
+      beforeEach ->
+        @mockEvent =
+          preventDefault: ->
+          isDefaultPrevented: -> false
+          target: $("<a x-bb-state='a.detail([1])' href='http://a.com/a/1/b/2'/>")[0]
+
+      it 'must add null to end of args for callback', ->
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+
+        expect(triggerStub).to.have.been.calledWith 'a.detail', [1, null]

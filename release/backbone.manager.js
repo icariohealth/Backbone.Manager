@@ -45,7 +45,7 @@
             });
             stateOptions._urlAsRegex = _this.router._routeToRegExp(stateOptions.url);
             _this.router.route(stateOptions._urlAsRegex, stateKey, function() {
-              _this._routeCallbackChooser(stateKey, stateOptions, arguments);
+              _this._routeCallbackChooser(stateKey, stateOptions, Array.apply(null, arguments));
             });
           }
           return _this.listenTo(managerQueue, stateKey, function(args) {
@@ -89,8 +89,8 @@
           if (!historyHasUpdated) {
             this.router.navigate(url);
           }
-          data = _.map(args, String);
-          data.push(null);
+          data = _.map(_.initial(args), String);
+          data.push(_.last(args));
         } else if (args instanceof Object) {
           url = stateOptions._urlAsTemplate(args);
           if (!historyHasUpdated) {
@@ -176,6 +176,7 @@
         if (managerQueue._events[parsed.state]) {
           state = parsed.state;
           args = parsed.args;
+          args.push(urlParser.search);
         } else {
           state = '*';
           args = [urlParser.pathname];
@@ -184,11 +185,14 @@
         stateInfo = stateAttr.split('(', 2);
         state = stateInfo[0];
         args = JSON.parse(stateInfo[1].slice(0, stateInfo[1].indexOf(')')));
+        if (args instanceof Array) {
+          args.push(null);
+        }
       }
       managerQueue.trigger(state, args);
     }
   };
-  $('document').on('click', 'a[x-bb-state]', function(event) {
+  $(window.document).on('click', 'a[x-bb-state]', function(event) {
     return _watchForStateChange(event);
   });
 ;
