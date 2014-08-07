@@ -1,5 +1,5 @@
 #Backbone.Manager#
-[![devDependency Status](https://david-dm.org/novu/backbone.manager/dev-status.svg?style=flat)](https://david-dm.org/novu/backbone.manager#info=devDependencies)
+[![devDependency Status](http://img.shields.io/david/dev/novu/backbone.manager.svg?style=flat)](https://david-dm.org/novu/backbone.manager#info=devDependencies)
 
 *README Currently In Progress*
 
