@@ -1,10 +1,15 @@
 #Backbone.Manager#
+[![devDependency Status](https://david-dm.org/novu/backbone.manager/dev-status.svg?style=flat)](https://david-dm.org/novu/backbone.manager#info=devDependencies)
 
-Structure:
-  states:
-    a:
-      url: 'a/b' (Not allowed to be a regex at this time)
-      
+*README Currently In Progress*
+
+---
+##Structure##
+```
+states:
+  a:
+    url: 'a/b' (Not allowed to be a regex at this time)
+```      
 ##Usage##
 Backbone.Manager.extend
 
