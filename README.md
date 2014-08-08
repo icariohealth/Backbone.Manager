@@ -4,14 +4,44 @@
 *README Currently In Progress*
 
 ---
-##Structure##
+##Example Usage##
+```
+UsersManager = Backbone.Manager.extend
+  states:
+    users:
+      url: 'users'
+      loadMethod: 'showUsers'
+      transitionMethod: 'switchToUsers'
+    'users.detail'
+      url: 'users/:id'
+      loadMethod: 'showUser'
+      transitionMethod: 'switchToUser'
+
+  events:
+    'pre-load:users.detail': 'prepareUser'
+    'post-transition': 'logInAnalytics'
+    
+  initialize: ->
+    # ...
+  showUsers: ->
+    # ...
+  switchToUsers: (searchString, options) ->
+    # ...
+  showUser: (id) ->
+    # ...
+  switchToUser: (id, searchString, options) ->
+    # ...
+  prepareUser: (id) ->
+    # ...
+  logInAnalytics: ->
+    # ...
+```
+##API##
 ```
 states:
   a:
     url: 'a/b' (Not allowed to be a regex at this time)
 ```      
-##Usage##
-Backbone.Manager.extend
 
 ##For Contributors##
 * PR's should only contain changes to .coffee files, the release js will be built later
