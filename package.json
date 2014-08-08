@@ -32,7 +32,8 @@
     "url": "https://github.com/novu/Backbone.Manager.git"
   },
   "scripts": {
-    "prepublish": "gulp release"
+    "prepublish": "gulp release",
+    "test": "gulp test"
   },
   "keywords": [
     "backbone",
