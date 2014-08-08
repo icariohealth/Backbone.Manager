@@ -1,29 +1,41 @@
 {
-  "name": "backbone.manager",
-  "version": "0.1.0",
-  "description": "",
-  "main": "gulpfile.js",
-  "dependencies": {},
-  "devDependencies": {
+  "name": "Backbone.Manager",
+  "version": "0.1.1",
+  "description": "State-Based Routing/Control Manager for Backbone",
+  "homepage": "https://github.com/novu/backbone.manager",
+  "bugs": "https://github.com/novu/backbone.manager/issues",
+  "main": "./release/backbone.manager.js",
+  "dependencies": {
     "backbone": "^1.1.2",
+    "jquery": "^2.1.1",
+    "underscore": "^1.6.0"
+  },
+  "devDependencies": {
     "chai": "^1.9.1",
     "gulp": "^3.8.6",
     "gulp-coffee": "^2.1.1",
+    "gulp-header": "^1.0.5",
+    "gulp-rename": "^1.2.0",
+    "gulp-rimraf": "^0.1.0",
     "gulp-sourcemaps": "^1.1.0",
     "gulp-strip-code": "^0.1.2",
+    "gulp-uglify": "^0.3.1",
     "gulp-util": "^3.0.0",
-    "jquery": "^2.1.1",
     "mocha": "^1.21.3",
     "sinon": "^1.10.3",
-    "sinon-chai": "^2.5.0",
-    "underscore": "^1.6.0"
+    "sinon-chai": "^2.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/novu/backbone.manager.git"
   },
   "scripts": {
-    "test": "test"
+    "prepublish": "gulp release"
   },
   "keywords": [
+    "backbone",
     "backbone.manager"
   ],
   "author": "Johnathon Sanders",
-  "license": "ISC"
+  "license": "MIT"
 }
