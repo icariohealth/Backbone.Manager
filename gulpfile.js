@@ -2,6 +2,7 @@ var coffee = require('gulp-coffee');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var header = require('gulp-header');
+var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
 var rimraf = require('gulp-rimraf');
 var sourcemaps = require('gulp-sourcemaps');
@@ -11,6 +12,14 @@ var uglify = require('gulp-uglify');
 var paths = {
   scripts: ['./src/*.coffee','./test/src/*.coffee']
 };
+
+/* TEST */
+gulp.task('mocha', function () {
+  return gulp.src('./test/common.js', {read: false})
+    .pipe(mocha({
+      ignoreLeaks: true
+    }));
+});
 
 /* DEVELOP */
 
@@ -67,3 +76,4 @@ gulp.task('release-js-min', function(){
 
 gulp.task('default', ['watch', 'coffee']);
 gulp.task('release', ['wipe-release-dir', 'release-js', 'release-js-min']);
+gulp.task('test', ['coffee','mocha']);
