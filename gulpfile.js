@@ -8,16 +8,16 @@ var sourcemaps = require('gulp-sourcemaps');
 var stripCode = require('gulp-strip-code');
 var uglify = require('gulp-uglify');
 
-var pkg = require('./package.json');
-
 var paths = {
   scripts: ['./src/*.coffee','./test/src/*.coffee']
 };
 
+/* DEVELOP */
+
 gulp.task('coffee', function(){
   gulp.src(paths.scripts)
     .pipe(sourcemaps.init())
-    .pipe(coffee({bare: true}).on('error', gutil.log))
+      .pipe(coffee({bare: true}).on('error', gutil.log))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('./out'))
 });
@@ -26,6 +26,8 @@ gulp.task('coffee', function(){
 gulp.task('watch', function() {
   gulp.watch(paths.scripts, ['coffee']);
 });
+
+/* RELEASE */
 
 gulp.task('wipe-release-dir', function() {
   gulp.src('./release/*', { read: false })
@@ -42,6 +44,8 @@ var banner = ['/**',
   ''].join('\n');
 
 gulp.task('release-js', function(){
+  var pkg = require('./package.json');
+
   gulp.src('./src/*.coffee')
     .pipe(coffee({bare: true}).on('error', gutil.log))
     .pipe(stripCode({
@@ -55,8 +59,8 @@ gulp.task('release-js', function(){
 gulp.task('release-js-min', function(){
   gulp.src(['./release/*.js','!./release/*-min.js'])
     .pipe(sourcemaps.init())
-    .pipe(uglify())
-    .pipe(rename({suffix: '-min'}))
+      .pipe(uglify())
+      .pipe(rename({suffix: '-min'}))
     .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('./release'));
 });
