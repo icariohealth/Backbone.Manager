@@ -15,7 +15,7 @@ var paths = {
 
 /* TEST */
 gulp.task('mocha', function () {
-  return gulp.src('./test/common.js', {read: false})
+  return gulp.src('./test/testRunner.js', {read: false})
     .pipe(mocha({
       ignoreLeaks: true
     }));
