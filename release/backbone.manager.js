@@ -174,7 +174,7 @@
   _watchForStateChange = function(event) {
     var args, parsed, state, stateAttr, stateInfo, urlParser;
     if (!event.isDefaultPrevented()) {
-      stateAttr = $(event.target).attr('x-bb-state');
+      stateAttr = $(event.target).attr('data-bb-state');
       event.preventDefault();
       if (stateAttr === '') {
         urlParser = document.createElement('a');
@@ -199,7 +199,7 @@
       managerQueue.trigger(state, args);
     }
   };
-  $(window.document).on('click', 'a[x-bb-state]', function(event) {
+  $(window.document).on('click', 'a[data-bb-state]', function(event) {
     return _watchForStateChange(event);
   });
 ;

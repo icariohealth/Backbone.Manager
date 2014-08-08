@@ -197,7 +197,7 @@
 
   _watchForStateChange = (event) ->
     unless event.isDefaultPrevented()
-      stateAttr = $(event.target).attr('x-bb-state')
+      stateAttr = $(event.target).attr('data-bb-state')
       event.preventDefault()
 
       if stateAttr is ''
@@ -227,7 +227,7 @@
       managerQueue.trigger state, args
     return
 
-  $(window.document).on 'click', 'a[x-bb-state]', (event) -> _watchForStateChange event
+  $(window.document).on 'click', 'a[data-bb-state]', (event) -> _watchForStateChange event
 
   `/* gulp-strip-release */`
   Backbone.Manager._testAccessor =

@@ -389,7 +389,7 @@ describe 'Backbone.Manager Closure Scope', ->
         @mockEvent =
           preventDefault: ->
           isDefaultPrevented: -> false
-          target: $("<a x-bb-state='' href='http://a.com/a/1/b/2'/>")[0]
+          target: $("<a data-bb-state='' href='http://a.com/a/1/b/2'/>")[0]
 
       it 'should trigger state based on convention if it exists', ->
         triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
@@ -412,7 +412,7 @@ describe 'Backbone.Manager Closure Scope', ->
         @mockEvent =
           preventDefault: ->
           isDefaultPrevented: -> false
-          target: $("<a x-bb-state='a.detail([1])' href='http://a.com/a/1/b/2'/>")[0]
+          target: $("<a data-bb-state='a.detail([1])' href='http://a.com/a/1/b/2'/>")[0]
 
       it 'must add null to end of args for callback', ->
         triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
