@@ -14,7 +14,8 @@ var paths = {
 };
 
 /* TEST */
-gulp.task('mocha', function () {
+
+gulp.task('mocha', ['coffee'], function () {
   return gulp.src('./test/testRunner.js', {read: false})
     .pipe(mocha({
       ignoreLeaks: true
@@ -24,22 +25,22 @@ gulp.task('mocha', function () {
 /* DEVELOP */
 
 gulp.task('coffee', function(){
-  gulp.src(paths.scripts)
+  return gulp.src(paths.scripts)
     .pipe(sourcemaps.init())
       .pipe(coffee({bare: true}).on('error', gutil.log))
     .pipe(sourcemaps.write())
-    .pipe(gulp.dest('./out'))
+    .pipe(gulp.dest('./out'));
 });
 
 // Rerun the task when a file changes
-gulp.task('watch', function() {
+gulp.task('watch', ['coffee'], function() {
   gulp.watch(paths.scripts, ['coffee']);
 });
 
 /* RELEASE */
 
 gulp.task('wipe-release-dir', function() {
-  gulp.src('./release/*', { read: false })
+  return gulp.src('./release/*', { read: false })
     .pipe(rimraf());
 });
 
@@ -52,10 +53,10 @@ var banner = ['/**',
   ' */',
   ''].join('\n');
 
-gulp.task('release-js', function(){
+gulp.task('release-js', ['wipe-release-dir'], function(){
   var pkg = require('./package.json');
 
-  gulp.src('./src/*.coffee')
+  return gulp.src('./src/*.coffee')
     .pipe(coffee({bare: true}).on('error', gutil.log))
     .pipe(stripCode({
       start_comment: 'gulp-strip-release',
@@ -65,7 +66,7 @@ gulp.task('release-js', function(){
     .pipe(gulp.dest('./release'));
 });
 
-gulp.task('release-js-min', function(){
+gulp.task('release-js-min', ['release-js'], function(){
   gulp.src(['./release/*.js','!./release/*-min.js'])
     .pipe(sourcemaps.init())
       .pipe(uglify())
@@ -74,6 +75,6 @@ gulp.task('release-js-min', function(){
     .pipe(gulp.dest('./release'));
 });
 
-gulp.task('default', ['watch', 'coffee']);
-gulp.task('release', ['wipe-release-dir', 'release-js', 'release-js-min']);
-gulp.task('test', ['coffee','mocha']);
+gulp.task('default', ['watch']);
+gulp.task('release', ['release-js-min']);
+gulp.task('test', ['mocha']);
