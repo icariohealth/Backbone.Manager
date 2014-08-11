@@ -18,8 +18,7 @@ var paths = {
 gulp.task('mocha', ['coffee'], function () {
   return gulp.src('./test/testRunner.js', {read: false})
     .pipe(mocha({
-      ignoreLeaks: true,
-      reporter: 'mocha-lcov-reporter'
+      ignoreLeaks: true
     }));
 });
 
