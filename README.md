@@ -4,13 +4,38 @@
 
 Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling.
 
-## Usage
-A Backbone.Manager instance is created by providing a router _(required)_ to the constructor: `new Backbone.Manager(router)`. If you're creating multiple Manager instances, It's recommended to just share a single instance of a router between them.
-#### Goals
-* Intuitive state Change
+Turn this:
+```coffee
+UsersRouter = Backbone.Router.extend
+  routes:
+    'users/:id': 'showUser'
 
-####Example Manager
+  initialize: (options) ->
+    _.bindAll @, 'switchToUser'
+
+    @listenTo Backbone, 'showUser', @switchToUser
 ```
+Into this:  
+```coffee
+UsersManager = Backbone.Manager.extend
+  states:
+    'users.detail':
+      url: 'users/:id'
+      loadMethod: 'showUser'
+      transitionMethod: 'switchToUser'
+```
+
+## Usage
+A Backbone.Manager instance is created by providing a router _(required)_ to the constructor: `new Backbone.Manager(router)`. If you're creating multiple Manager instances, it's recommended to just share a single instance of a router between them.
+#### Goals
+* Intuitive state change
+* Differentiate between pageload and triggered changes
+* Remove temptation of view<->router relationships
+* Conventional state change from anchor href's
+* Programmatic state change ability
+
+####Example
+```coffee
 UsersManager = Backbone.Manager.extend
   states:
     users:
@@ -43,22 +68,22 @@ UsersManager = Backbone.Manager.extend
 ```
 
 
-## States
+### States
 The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
 - Directly-related to an url
 - Completely independent from urls
 
 Which category a state falls under is controlled by the state being provided with an url definition:
-```
+```coffee
 states:
   urlState:
     url: '/states/:id'
     # etc
   nonUrlState:
-    #etc
+    # etc
 ```
 ---
-### States with url definitions
+#### States with url definitions
 These are able to be triggered via:
 * Pageload: History.popstate of '/users/1'
 * Programmatically: `Backbone.History.go('users.detail',[1])`
@@ -77,9 +102,17 @@ Url            | State Name
 \* Never rely on convention for states associated with this type of url.
 
 The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
-#### The `'*'` State
-The `'*'` is reserved as a final matcher for states. When the `data-bb-state` (todo link this) watcher attempts to perform a state transtion for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an exmaple of how to use it:
-```
+
+#### States __without__ url definitions
+
+These are able to be triggered via:
+* Programmatically: `Backbone.History.go('users.detail',[1])`
+* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
+* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+
+### The `'*'` State
+The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transtion for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
+```coffee
 Backbone.Manager.extend
   states:
     '*':
@@ -88,18 +121,8 @@ Backbone.Manager.extend
   defaultTransition: (url) ->
     # ...
 ```
----
-### States __without__ url definitions
 
-These are able to be triggered via:
-* Programmatically: `Backbone.History.go('users.detail',[1])`
-* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
-* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
-
-
-####Usage Details
-
-## API     
+**Important:** If this is declared, it should be done within the very **first manager** created, and as the very **first state** definition. This is so that it ends up being placed in the bottom of the handlers stack within Backbone.History. See [TODO Order Is Important](#OrderIsImportant) for more detail
 
 ##For Contributors##
 * PR's should only contain changes to .coffee files, the release js will be built later
