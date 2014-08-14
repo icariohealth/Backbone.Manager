@@ -9,34 +9,7 @@ A Backbone.Manager instance is created by providing a router _(required)_ to the
 #### Goals
 * Intuitive state Change
 
-### States
-The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
-- Directly-related to an url
-- Completely independent from urls
-
-Which category a state falls under is controlled by the state being provided with an url definition:
-```
-states:
-  urlState:
-    url: '/states/:id'
-    # etc
-  nonUrlState:
-    #etc
-```
-#### States with url defintions
-For url-related states, there is a convention for state name that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit any automatic triggering (described later). Urls are conventionally associated as follows:
-
-Url            | State Name
--------------- | ----------
-/users         | users
-/users/1       | users.detail
-/users/1/books | users.detail.books
-/sections/1/2  | sections.detail.2 (not good*)
-
-\* Never rely on convention for states associated with this type of url.
-
-The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
-####An Example
+####Example Manager
 ```
 UsersManager = Backbone.Manager.extend
   states:
@@ -68,6 +41,62 @@ UsersManager = Backbone.Manager.extend
   logInAnalytics: ->
     # ...
 ```
+
+
+## States
+The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
+- Directly-related to an url
+- Completely independent from urls
+
+Which category a state falls under is controlled by the state being provided with an url definition:
+```
+states:
+  urlState:
+    url: '/states/:id'
+    # etc
+  nonUrlState:
+    #etc
+```
+---
+### States with url definitions
+These are able to be triggered via:
+* Pageload: History.popstate of '/users/1'
+* Programmatically: `Backbone.History.go('users.detail',[1])`
+* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
+* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+
+For url-related states, there is a convention for state name that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit the automatic conventional `data-bb-state` trigger. Here is how urls are conventionally translated to a state name:
+
+Url            | State Name
+-------------- | ----------
+/users         | users
+/users/1       | users.detail
+/users/1/books | users.detail.books
+/sections/1/2  | sections.detail.2 (not good*)
+
+\* Never rely on convention for states associated with this type of url.
+
+The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
+#### The `'*'` State
+The `'*'` is reserved as a final matcher for states. When the `data-bb-state` (todo link this) watcher attempts to perform a state transtion for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an exmaple of how to use it:
+```
+Backbone.Manager.extend
+  states:
+    '*':
+      url: '*url'
+      transitionMethod: 'defaultTransition'
+  defaultTransition: (url) ->
+    # ...
+```
+---
+### States __without__ url definitions
+
+These are able to be triggered via:
+* Programmatically: `Backbone.History.go('users.detail',[1])`
+* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
+* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+
+
 ####Usage Details
 
 ## API     
