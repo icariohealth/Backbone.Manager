@@ -5,13 +5,16 @@
 Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling.
 
 ## Usage
-A Backbone.Manager instance is created by providing a router _(required)_: `new Backbone.Manager(router)`. If you're creating multiple Manager instances, It's recommended to just share a single instance of a router between them.
+A Backbone.Manager instance is created by providing a router _(required)_ to the constructor: `new Backbone.Manager(router)`. If you're creating multiple Manager instances, It's recommended to just share a single instance of a router between them.
+#### Goals
+* Intuitive state Change
+
 ### States
 The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
 - Directly-related to an url
 - Completely independent from urls
 
-Which category it is, is controlled by the state having a url definition:
+Which category a state falls under is controlled by the state being provided with an url definition:
 ```
 states:
   urlState:
@@ -21,15 +24,18 @@ states:
     #etc
 ```
 #### States with url defintions
-For url-related states, there is a convention for statename that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit any automatic triggering (described later). Conventional state names are as follows:
+For url-related states, there is a convention for state name that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit any automatic triggering (described later). Urls are conventionally associated as follows:
 
 Url            | State Name
 -------------- | ----------
 /users         | users
 /users/1       | users.detail
 /users/1/books | users.detail.books
+/sections/1/2  | sections.detail.2 (not good*)
 
-The url definition is essentially the same url you would define in a Router's `routes` definition. Infact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal routes callback would be. **NOTE: Currently RegExp values are not supported**
+\* Never rely on convention for states associated with this type of url.
+
+The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
 ####An Example
 ```
 UsersManager = Backbone.Manager.extend
@@ -64,12 +70,7 @@ UsersManager = Backbone.Manager.extend
 ```
 ####Usage Details
 
-##API##
-```
-states:
-  a:
-    url: 'a/b' (Not allowed to be a regex at this time)
-```      
+## API     
 
 ##For Contributors##
 * PR's should only contain changes to .coffee files, the release js will be built later
