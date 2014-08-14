@@ -4,7 +4,7 @@
 
 Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling.
 
-Turn this:
+From this:
 ```coffee
 UsersRouter = Backbone.Router.extend
   routes:
@@ -15,7 +15,7 @@ UsersRouter = Backbone.Router.extend
 
     @listenTo Backbone, 'showUser', @switchToUser
 ```
-Into this:  
+To this:  
 ```coffee
 UsersManager = Backbone.Manager.extend
   states:
@@ -67,11 +67,10 @@ UsersManager = Backbone.Manager.extend
     # ...
 ```
 
-
 ### States
 The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
-- Directly-related to an url
-- Completely independent from urls
+- [Directly-related to an url](#states-with-url-definitions)
+- [Completely independent from urls]((#states-without-url-definitions))
 
 Which category a state falls under is controlled by the state being provided with an url definition:
 ```coffee
@@ -83,7 +82,7 @@ states:
     # etc
 ```
 ---
-#### States with url definitions
+#### States with `url` definitions
 These are able to be triggered via:
 * Pageload: History.popstate of '/users/1'
 * Programmatically: `Backbone.History.go('users.detail',[1])`
@@ -103,12 +102,60 @@ Url            | State Name
 
 The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
 
-#### States __without__ url definitions
+---
+#### States __without__ `url` definitions
 
 These are able to be triggered via:
 * Programmatically: `Backbone.History.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
 * Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+
+#### `loadMethod` *optional*
+```coffee
+states:
+  stateName:
+    url: 'users/:id'
+    loadMethod: 'callback' # String representing method name for callback
+```
+Callback used immediately upon load of the page, when the page url matches defined url (User navigates directly). Url must be defined to activate.
+```coffee
+# Arguments are built from url params, passed straight from the Router
+callback: (id) ->
+```
+
+#### `transitionMethod`
+Callback used when any non-loadMethod related state change occurs.
+##### `url` Defined
+```coffee
+states:
+  stateName:
+    url: 'users/:a/books/:b'
+    transitionMethod: 'callback' # String representing method name for callback
+```
+Callback method takes the params in order from the url, then provides the queryString (provided because of the router, usually null), and finally an options object containing the populated url. So:
+
+trigger | callback method
+------- | -------------------------
+`Backbone.History.go('users.detail',[1,2])` | `callback(1,2,null,{url: 'users/1/books/2'})`
+`Backbone.History.go('users.detail',{b:2,a:1})` **args order not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
+`<a data-bb-state="users.detail([1,2])">` | `callback(1,2,null,{url: 'users/1/books/2'})`
+`<a data-bb-state="users.detail({b:2,a:1})">` **args order not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
+`<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2,null,{url: 'users/1/books/2'})`
+##### No `url` Defined
+```coffee
+states:
+  stateName:
+    transitionMethod: 'callback' # String representing method name for callback
+```
+Callback method takes the params in order as passed. Order is important, even when an object is used for the args. So:
+
+trigger | callback method
+------- | -------------------------
+`Backbone.History.go('users.detail',[1,2])` | `callback(1,2)`
+`Backbone.History.go('users.detail',{b:2,a:1})` **args order important** | `callback(2,1)` **values taken in order**
+`<a data-bb-state="users.detail([1,2])">` | `callback(1,2)`
+`<a data-bb-state="users.detail({b:2,a:1})">` **args order important** | `callback(2,1)` **values taken in order**
+`<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2)`
 
 ### The `'*'` State
 The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transtion for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
