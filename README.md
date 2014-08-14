@@ -137,9 +137,9 @@ Callback method takes the params in order from the url, then provides the queryS
 trigger | callback method
 ------- | -------------------------
 `Backbone.History.go('users.detail.books.detail',[1,2])` | `callback(1,2,null,{url: 'users/1/books/2'})`
-`Backbone.History.go('users.detail.books.detail',{b:2,a:1})` **args order not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
+`Backbone.History.go('users.detail.books.detail',{b:2,a:1})` args order **not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2,null,{url: 'users/1/books/2'})`
-`<a data-bb-state="users.detail.books.detail({b:2,a:1})">` **args order not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
+`<a data-bb-state="users.detail.books.detail({b:2,a:1})">` args order **not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2,null,{url: 'users/1/books/2'})`
 ##### No `url` Defined
 ```coffee
@@ -152,9 +152,9 @@ Callback method takes the params in order as passed. Order is important, even wh
 trigger | callback method
 ------- | -------------------------
 `Backbone.History.go('users.detail.books.detail',[1,2])` | `callback(1,2)`
-`Backbone.History.go('users.detail.books.detail',{b:2,a:1})` **args order important** | `callback(2,1)` **values taken in order**
+`Backbone.History.go('users.detail.books.detail',{b:2,a:1})` args order **important** | `callback(2,1)` **values taken in order**
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2)`
-`<a data-bb-state="users.detail.books.detail({b:2,a:1})">` **args order important** | `callback(2,1)` **values taken in order**
+`<a data-bb-state="users.detail.books.detail({b:2,a:1})">` args order **important** | `callback(2,1)` **values taken in order**
 `<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2)`
 
 ### The `'*'` State
