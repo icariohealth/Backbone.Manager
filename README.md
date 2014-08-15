@@ -2,7 +2,7 @@
 [![Build Status](http://img.shields.io/travis/novu/Backbone.Manager.svg?style=flat)](https://travis-ci.org/novu/Backbone.Manager)
 [![devDependency Status](http://img.shields.io/david/dev/novu/backbone.manager.svg?style=flat)](https://david-dm.org/novu/backbone.manager#info=devDependencies)
 
-Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling.
+Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling. It can be used for large state changes that involve url updates and moving between major view controllers, or for small state changes to do things like flash div content.
 
 #### Goals
 * Intuitive state change
@@ -11,7 +11,7 @@ Backbone.Manager is a state-based routing/control manager for Backbone. It remov
 * Conventional state change from anchor href's
 * Programmatic state change ability
 
-Instead of this:
+This:
 ```coffee
 UsersRouter = Backbone.Router.extend
   routes:
@@ -22,7 +22,7 @@ UsersRouter = Backbone.Router.extend
 
     @listenTo Backbone, 'showUser', @switchToUser
 ```
-We can do this:  
+is now organized into this:  
 ```coffee
 UsersManager = Backbone.Manager.extend
   states:
@@ -50,7 +50,7 @@ UsersManager = Backbone.Manager.extend
 
   events:
     'pre-load:users.detail': 'prepareUser'
-    'post-transition': 'logInAnalytics'
+    'post-transition': 'logToAnalytics'
     
   initialize: ->
     # ...
@@ -64,7 +64,7 @@ UsersManager = Backbone.Manager.extend
     # ...
   prepareUser: (id) ->
     # ...
-  logInAnalytics: ->
+  logToAnalytics: ->
     # ...
 ```
 
@@ -86,11 +86,12 @@ states:
 ### States with `url` definitions
 These are able to be triggered via:
 * Initial Pageload
-* History.popstate of '/users/1'
+* Window.popstate of '/users/1'
 * `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
 * Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
 
+##### Url Convention
 For url-related states, there is a convention for state name that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit the automatic conventional `data-bb-state` trigger. Here is how urls are conventionally translated to a state name:
 
 Url            | State Name
@@ -189,11 +190,18 @@ post-transition | transition call completed for any state
 post-transition:[state] | transition call completed for the [state]
 
 ## Triggering State Change
+There are four different ways to trigger a state change within Backbone.Manager:
 ### Initial Pageload
-Triggered immediately upon load of the page, when the page url matches defined url (User navigates directly). Url must be defined to activate. This will trigger the [loadMethod](#loadMethod-optional) associated with the url.
-### History.popstate
-Typically occurs when the user uses the back button. This will trigger the [transitionMethod](#transitionMethod) associated with the url.
+Triggered immediately upon load of the page, when the page url matches defined url (User navigates directly). Url must be defined to activate. This will trigger the [loadMethod](#loadmethod-optional) associated with the url.
+
+---
+### Window.popstate
+Typically occurs when the user uses the back button. This will trigger the [transitionMethod](#transitionmethod) associated with the url.
+
+---
 ### `Backbone.Manager.go(stateName, args)`
+The programmatic way of triggering state changes.
+**Example Usage:**
 ```coffee
 events:
   'click dd': 'showUser'
@@ -203,13 +211,25 @@ showUser: ->
 params:
 * stateName
 * args: [] or {}
-  * see [transitionMethod](#transitionMethod) for details on what happens with the args
+  * see [transitionMethod](#transitionmethod) for details on what happens with the args
 
+---
 ### Click on `<a data-bb-state="">`
-* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
-* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+The `data-bb-state` attribute is watched for by Backbone.Manager on all anchor tag clicks that bubble up to document. If event propagation is disabled or preventDefault gets set on that event, then Backbone.Manager will not trigger.
+
+**Example Usages:**
+```html
+<a data-bb-state='users.detail([1])'/>
+<a data-bb-state='users.detail({id:1})'/>
+<a data-bb-state='' href='/users/1'/>
+```
+The format for the `data-bb-state` value is `'statename([args]or{args})'`, where the args are passed to the callback as described in [transitionMethod](#transitionmethod).
+
+All of the examples above will match to the `users.detail` state name and all will trigger the `users.detail.transitionMethod` callback.
+
+The first two examples are explicit state calls, but the third uses the [url convention](#url-convention) to determine the state name and the args. To use the conventional trigger, `data-bb-state=""` must be defined on the anchor and it must have an `href` url defined.
 
 ##For Contributors
 * PR's should only contain changes to .coffee files, the release js will be built later
 * Run `gulp` to autocompile coffeescript (both src and test/src) into /out for testing
-* Open `test/test-runner.html` to run the in-browser test suite... Mocha isn't currently configured to be run headless
+* Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
