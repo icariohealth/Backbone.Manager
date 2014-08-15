@@ -229,6 +229,9 @@ All of the examples above will match to the `users.detail` state name and all wi
 
 The first two examples are explicit state calls, but the third uses the [url convention](#url-convention) to determine the state name and the args. To use the conventional trigger, `data-bb-state=""` must be defined on the anchor and it must have an `href` url defined.
 
+## Additional Resources
+* [Slides](http://slides.com/johnathonsanders/backbone-manager)
+
 ##For Contributors
 * PR's should only contain changes to .coffee files, the release js will be built later
 * Run `gulp` to autocompile coffeescript (both src and test/src) into /out for testing
