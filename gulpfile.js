@@ -1,7 +1,9 @@
 var coffee = require('gulp-coffee');
+var coveralls = require('gulp-coveralls');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var header = require('gulp-header');
+var istanbul = require('gulp-istanbul');
 var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
 var rimraf = require('gulp-rimraf');
@@ -20,6 +22,23 @@ gulp.task('mocha', ['coffee'], function () {
     .pipe(mocha({
       ignoreLeaks: true
     }));
+});
+
+gulp.task('mocha-istanbul',['coffee'], function(cb){
+  gulp.src(['./out/backbone.manager.js'])
+    .pipe(istanbul()) // Covering files
+    .on('finish', function () {
+      gulp.src(['./test/testRunner.js'])
+        .pipe(mocha({
+          ignoreLeaks: true
+        }))
+        .pipe(istanbul.writeReports()) // Creating the reports after tests runned
+        .on('end', function(){
+          gulp.src('./coverage/lcov.info')
+            .pipe(coveralls());
+          cb();
+        });
+    });
 });
 
 /* DEVELOP */
@@ -77,4 +96,4 @@ gulp.task('release-js-min', ['release-js'], function(){
 
 gulp.task('default', ['watch']);
 gulp.task('release', ['release-js-min']);
-gulp.task('test', ['mocha']);
+gulp.task('test', ['mocha-istanbul']);
