@@ -1,5 +1,6 @@
 # Backbone.Manager
 [![Build Status](http://img.shields.io/travis/novu/Backbone.Manager.svg?style=flat)](https://travis-ci.org/novu/Backbone.Manager)
+[![Coverage Status](https://coveralls.io/repos/novu/Backbone.Manager/badge.png?branch=master)](https://coveralls.io/r/novu/Backbone.Manager?branch=master)
 [![devDependency Status](http://img.shields.io/david/dev/novu/backbone.manager.svg?style=flat)](https://david-dm.org/novu/backbone.manager#info=devDependencies)
 
 Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling. It can be used for large state changes that involve url updates and moving between major view controllers, or for small state changes to do things like flash div content.
