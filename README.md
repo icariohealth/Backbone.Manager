@@ -4,7 +4,14 @@
 
 Backbone.Manager is a state-based routing/control manager for Backbone. It removes direct dependency on the router, and instead provides a standard control mechanism for url updates and state-change handling.
 
-From this:
+#### Goals
+* Intuitive state change
+* Differentiate between pageload and triggered changes
+* Remove temptation of view<->router relationships
+* Conventional state change from anchor href's
+* Programmatic state change ability
+
+Instead of this:
 ```coffee
 UsersRouter = Backbone.Router.extend
   routes:
@@ -15,7 +22,7 @@ UsersRouter = Backbone.Router.extend
 
     @listenTo Backbone, 'showUser', @switchToUser
 ```
-To this:  
+We can do this:  
 ```coffee
 UsersManager = Backbone.Manager.extend
   states:
@@ -27,12 +34,6 @@ UsersManager = Backbone.Manager.extend
 
 ## Usage
 A Backbone.Manager instance is created by providing a router _(required)_ to the constructor: `new Backbone.Manager(router)`. If you're creating multiple Manager instances, it's recommended to just share a single instance of a router between them.
-#### Goals
-* Intuitive state change
-* Differentiate between pageload and triggered changes
-* Remove temptation of view<->router relationships
-* Conventional state change from anchor href's
-* Programmatic state change ability
 
 ####Example
 ```coffee
@@ -67,10 +68,10 @@ UsersManager = Backbone.Manager.extend
     # ...
 ```
 
-### States
+## States
 The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
 - [Directly-related to an url](#states-with-url-definitions)
-- [Completely independent from urls]((#states-without-url-definitions))
+- [Completely independent from urls](#states-without-url-definitions)
 
 Which category a state falls under is controlled by the state being provided with an url definition:
 ```coffee
@@ -82,10 +83,11 @@ states:
     # etc
 ```
 ---
-#### States with `url` definitions
+### States with `url` definitions
 These are able to be triggered via:
-* Pageload: History.popstate of '/users/1'
-* Programmatically: `Backbone.History.go('users.detail',[1])`
+* Initial Pageload
+* History.popstate of '/users/1'
+* `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
 * Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
 
@@ -103,14 +105,15 @@ Url            | State Name
 The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
 
 ---
-#### States __without__ `url` definitions
+### States __without__ `url` definitions
 
 These are able to be triggered via:
-* Programmatically: `Backbone.History.go('users.detail',[1])`
+* Programmatically: `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
 * Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
 
-#### `loadMethod` *optional*
+---
+### `loadMethod` *optional*
 ```coffee
 states:
   stateName:
@@ -120,28 +123,28 @@ states:
 Callback used immediately upon load of the page, when the page url matches defined url (User navigates directly). Url must be defined to activate.
 ```coffee
 # Arguments are built from url params, passed straight from the Router
-callback: (id) ->
+callback: (id, searchString) ->
 ```
-
-#### `transitionMethod`
+---
+### `transitionMethod`
 Callback used when any non-loadMethod related state change occurs.
-##### `url` Defined
+#### When `url` Is Defined
 ```coffee
 states:
   stateName:
     url: 'users/:a/books/:b'
     transitionMethod: 'callback' # String representing method name for callback
 ```
-Callback method takes the params in order from the url, then provides the queryString (provided because of the router, usually null), and finally an options object containing the populated url. So:
+Callback method takes the params in order from the url, then provides the searchString (provided because of the router, usually null), and finally an options object containing the populated url. So:
 
 trigger | callback method
 ------- | -------------------------
-`Backbone.History.go('users.detail.books.detail',[1,2])` | `callback(1,2,null,{url: 'users/1/books/2'})`
-`Backbone.History.go('users.detail.books.detail',{b:2,a:1})` args order **not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
+`Backbone.Manager.go('users.detail.books.detail',[1,2])` | `callback(1,2,null,{url: 'users/1/books/2'})`
+`Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **not important**) | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2,null,{url: 'users/1/books/2'})`
-`<a data-bb-state="users.detail.books.detail({b:2,a:1})">` args order **not important** | `callback(1,2,null,{url: 'users/1/books/2'})`
+`<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **not important**) | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2,null,{url: 'users/1/books/2'})`
-##### No `url` Defined
+#### When `url` Is *NOT* Defined
 ```coffee
 states:
   stateName:
@@ -151,13 +154,13 @@ Callback method takes the params in order as passed. Order is important, even wh
 
 trigger | callback method
 ------- | -------------------------
-`Backbone.History.go('users.detail.books.detail',[1,2])` | `callback(1,2)`
-`Backbone.History.go('users.detail.books.detail',{b:2,a:1})` args order **important** | `callback(2,1)` **values taken in order**
+`Backbone.Manager.go('users.detail.books.detail',[1,2])` | `callback(1,2)`
+`Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2)`
-`<a data-bb-state="users.detail.books.detail({b:2,a:1})">` args order **important** | `callback(2,1)` **values taken in order**
+`<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
 `<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2)`
 
-### The `'*'` State
+## The `'*'` State
 The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transtion for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
 ```coffee
 Backbone.Manager.extend
@@ -169,9 +172,44 @@ Backbone.Manager.extend
     # ...
 ```
 
-**Important:** If this is declared, it should be done within the very **first manager** created, and as the very **first state** definition. This is so that it ends up being placed in the bottom of the handlers stack within Backbone.History. See [TODO Order Is Important](#OrderIsImportant) for more detail
+**Important:** If this is declared, it should be done within the very **first manager** created, and as the very **first state** definition. This is so that it ends up being placed in the bottom of the handlers stack within Backbone.History. When a Manager is created, Backbone.Manager inserts each url handler into the shared router as it progresses through the States definition... from the top down. The Router then works from the top down in it'swhen it's searching for a match. This is a Backbone.Router limitation.
 
-##For Contributors##
+## Events
+Backbone.Manager will trigger state specific and general events as the transition and load methods are being processed. These are async calls, so the callbacks aren't guaranteed to have completed before the `post` events are triggered. Here are the following events that are triggered:
+
+event | description
+----- | -----------
+pre-load | incoming page load call for any state
+pre-load:\[state] (args) | incoming page load call for the [state]<br>(args) are the url params provided by the router
+post-load | incoming page load call completed for any state
+post-load:\[state] (args) | incoming page load call completed for the [state]<br>(args) are the url params provided by the router
+pre-transition | incoming transition call for any state
+pre-transition:[state] | incoming transition call for the [state]
+post-transition | transition call completed for any state
+post-transition:[state] | transition call completed for the [state]
+
+## Triggering State Change
+### Initial Pageload
+Triggered immediately upon load of the page, when the page url matches defined url (User navigates directly). Url must be defined to activate. This will trigger the [loadMethod](#loadMethod-optional) associated with the url.
+### History.popstate
+Typically occurs when the user uses the back button. This will trigger the [transitionMethod](#transitionMethod) associated with the url.
+### `Backbone.Manager.go(stateName, args)`
+```coffee
+events:
+  'click dd': 'showUser'
+showUser: ->
+  Backbone.Manager.go('users.detail', {id:1})
+```
+params:
+* stateName
+* args: [] or {}
+  * see [transitionMethod](#transitionMethod) for details on what happens with the args
+
+### Click on `<a data-bb-state="">`
+* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
+* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+
+##For Contributors
 * PR's should only contain changes to .coffee files, the release js will be built later
 * Run `gulp` to autocompile coffeescript (both src and test/src) into /out for testing
 * Open `test/test-runner.html` to run the in-browser test suite... Mocha isn't currently configured to be run headless
