@@ -71,7 +71,7 @@ UsersManager = Backbone.Manager.extend
 ```
 
 ## States
-The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basicaly fall into one of two categories:
+The `states` definition is the foundation of the Manager. It consists of state names paired with definitions for that state. States basically fall into one of two categories:
 - [Directly-related to an url](#states-with-url-definitions)
 - [Completely independent from urls](#states-without-url-definitions)
 
@@ -111,7 +111,7 @@ The url definition is essentially the same url you would define in a Router's `r
 ### States __without__ `url` definitions
 
 These are able to be triggered via:
-* Programmatically: `Backbone.Manager.go('users.detail',[1])`
+* Programmatic: `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
 * Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
 
@@ -164,7 +164,7 @@ trigger | callback method
 `<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2)`
 
 ## The `'*'` State
-The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transtion for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
+The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transition for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
 ```coffee
 Backbone.Manager.extend
   states:
@@ -175,7 +175,7 @@ Backbone.Manager.extend
     # ...
 ```
 
-**Important:** If this is declared, it should be done within the very **first manager** created, and as the very **first state** definition. This is so that it ends up being placed in the bottom of the handlers stack within Backbone.History. When a Manager is created, Backbone.Manager inserts each url handler into the shared router as it progresses through the States definition... from the top down. The Router then works from the top down in it'swhen it's searching for a match. This is a Backbone.Router limitation.
+**Important:** If this is declared, it should be done within the very **first manager** created, and as the very **first state** definition. This is so that it ends up being placed in the bottom of the handlers stack within Backbone.History. When a Manager is created, Backbone.Manager inserts each url handler into the shared router as it progresses through the States definition... from the top down. The Router then works from the top down in its handlers when it's searching for a match. This is a Backbone.Router limitation.
 
 ## Events
 Backbone.Manager will trigger state specific and general events as the transition and load methods are being processed. These are async calls, so the callbacks aren't guaranteed to have completed before the `post` events are triggered. Here are the following events that are triggered:
