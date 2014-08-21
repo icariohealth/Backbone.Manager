@@ -91,7 +91,7 @@ These are able to be triggered via:
 * Window.popstate of '/users/1'
 * `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
-* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+* Conventional `data-bb-state` trigger: `<a data-bb-state href="/users/1">`
 
 ##### Url Convention
 For url-related states, there is a convention for state name that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit the automatic conventional `data-bb-state` trigger. Here is how urls are conventionally translated to a state name:
@@ -113,7 +113,7 @@ The url definition is essentially the same url you would define in a Router's `r
 These are able to be triggered via:
 * Programmatic: `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
-* Conventional `data-bb-state` trigger: `<a data-bb-state="" href="/users/1">`
+* Conventional `data-bb-state` trigger: `<a data-bb-state href="/users/1">`
 
 ---
 ### `loadMethod` *optional*
@@ -146,7 +146,7 @@ trigger | callback method
 `Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **not important**) | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **not important**) | `callback(1,2,null,{url: 'users/1/books/2'})`
-`<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2,null,{url: 'users/1/books/2'})`
+`<a data-bb-state href="/users/1/books/2">` | `callback(1,2,null,{url: 'users/1/books/2'})`
 #### When `url` Is *NOT* Defined
 ```coffee
 states:
@@ -161,7 +161,7 @@ trigger | callback method
 `Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2)`
 `<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
-`<a data-bb-state="" href="/users/1/books/2">` | `callback(1,2)`
+`<a data-bb-state href="/users/1/books/2">` | `callback(1,2)`
 
 ## The `'*'` State
 The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transition for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
@@ -216,20 +216,20 @@ params:
   * see [transitionMethod](#transitionmethod) for details on what happens with the args
 
 ---
-### Click on `<a data-bb-state="">`
+### Click on `<a data-bb-state>`
 The `data-bb-state` attribute is watched for by Backbone.Manager on all anchor tag clicks that bubble up to document. If event propagation is disabled or preventDefault gets set on that event, then Backbone.Manager will not trigger.
 
 **Example Usages:**
 ```html
 <a data-bb-state='users.detail([1])'/>
 <a data-bb-state='users.detail({id:1})'/>
-<a data-bb-state='' href='/users/1'/>
+<a data-bb-state href='/users/1'/>
 ```
 The format for the `data-bb-state` value is `'statename([args]or{args})'`, where the args are passed to the callback as described in [transitionMethod](#transitionmethod).
 
 All of the examples above will match to the `users.detail` state name and all will trigger the `users.detail.transitionMethod` callback.
 
-The first two examples are explicit state calls, but the third uses the [url convention](#url-convention) to determine the state name and the args. To use the conventional trigger, `data-bb-state=""` must be defined on the anchor and it must have an `href` url defined.
+The first two examples are explicit state calls, but the third uses the [url convention](#url-convention) to determine the state name and the args. To use the conventional trigger, `data-bb-state` must be defined on the anchor and it must have an `href` url defined.
 
 ## Additional Resources
 * [Slides](http://slides.com/johnathonsanders/backbone-manager)
