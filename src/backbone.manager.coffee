@@ -219,7 +219,10 @@
         # parse the passed info
         stateInfo = stateAttr.split('(', 2)
         state = stateInfo[0]
-        args = JSON.parse(stateInfo[1].slice 0, stateInfo[1].indexOf(')'))
+        args = []
+
+        if stateInfo.length > 1 and stateInfo[1].length > 2 # basically if there's anything in the ()'s
+          args = JSON.parse(stateInfo[1].slice 0, stateInfo[1].indexOf(')'))
 
         if args instanceof Array
           args.push null # this represents the query params value to the callback, which routers always append now

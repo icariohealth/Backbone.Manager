@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.1.1
+ * @version v0.1.2
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -191,7 +191,10 @@
       } else {
         stateInfo = stateAttr.split('(', 2);
         state = stateInfo[0];
-        args = JSON.parse(stateInfo[1].slice(0, stateInfo[1].indexOf(')')));
+        args = [];
+        if (stateInfo.length > 1 && stateInfo[1].length > 2) {
+          args = JSON.parse(stateInfo[1].slice(0, stateInfo[1].indexOf(')')));
+        }
         if (args instanceof Array) {
           args.push(null);
         }

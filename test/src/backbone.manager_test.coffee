@@ -408,15 +408,39 @@ describe 'Backbone.Manager Closure Scope', ->
         expect(triggerStub).to.have.been.calledWith '*', ['/a/1/b/2']
 
     context 'bb-state has value', ->
-      beforeEach ->
+      it 'must add null to end of args for callback', ->
         @mockEvent =
           preventDefault: ->
           isDefaultPrevented: -> false
           target: $("<a data-bb-state='a.detail([1])' href='http://a.com/a/1/b/2'/>")[0]
 
-      it 'must add null to end of args for callback', ->
         triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
         Backbone.Manager._testAccessor._watchForStateChange @mockEvent
 
         expect(triggerStub).to.have.been.calledWith 'a.detail', [1, null]
+
+      it 'should pass [null] if bb-state has value but passing empty parenthesis', ->
+        @mockEvent =
+          preventDefault: ->
+          isDefaultPrevented: -> false
+          target: $("<a data-bb-state='a.b()'/>")[0]
+
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+
+        expect(triggerStub).to.have.been.calledWith 'a.b', [null]
+
+      it 'should pass [null] if bb-state has value but no parenthesis', ->
+        @mockEvent =
+          preventDefault: ->
+          isDefaultPrevented: -> false
+          target: $("<a data-bb-state='a.b'/>")[0]
+
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+
+        expect(triggerStub).to.have.been.calledWith 'a.b', [null]
+
