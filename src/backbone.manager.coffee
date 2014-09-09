@@ -67,7 +67,8 @@
 
           stateOptions._urlParams = while matches = cachedParamMatcher.exec(stateOptions.url)
             matches[1]
-          stateOptions._urlAsTemplate = _.template stateOptions.url, null, {interpolate: cachedParamMatcher}
+          templateUrl = stateOptions.url.replace(/\(.*\)/g,'') # drop all '()'s for the urlAsTemplate
+          stateOptions._urlAsTemplate = _.template templateUrl, null, {interpolate: cachedParamMatcher}
           stateOptions._urlAsRegex = @router._routeToRegExp stateOptions.url
 
           # Register the urls into the router

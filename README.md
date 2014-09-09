@@ -138,6 +138,8 @@ states:
     url: 'users/:a/books/:b'
     transitionMethod: 'callback' # String representing method name for callback
 ```
+Before the `transitionMethod` is triggered, A `router.navigate` will occur with the state's url. **Note: currently anything inside of and including the optional matcher (`()`'s) in the state url are removed first.**
+
 Callback method takes the params in order from the url, then provides the searchString (provided because of the router, usually null), and finally an options object containing the populated url. So:
 
 trigger | callback method

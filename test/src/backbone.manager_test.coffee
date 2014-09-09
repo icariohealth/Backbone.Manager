@@ -111,6 +111,19 @@ describe 'Backbone.Manager.prototype', ->
 
         expect(manager.states.test._urlAsTemplate(obj)).to.equal 'a/1/b/2'
 
+      it 'should remove optional surrounds for url template', ->
+        manager = new (Backbone.Manager.extend
+          states:
+            test:
+              transitionMethod: 'a'
+              url: 'a/:a_id/b(/:b_id)'
+        )(@router)
+
+        obj =
+          a_id: 1
+
+        expect(manager.states.test._urlAsTemplate(obj)).to.equal 'a/1/b'
+
       it 'should set regex from url, built same as router', ->
         manager = new (Backbone.Manager.extend
           states:

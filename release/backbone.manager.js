@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.1.2
+ * @version v0.1.3
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -30,7 +30,7 @@
     Manager.prototype._parseStates = function() {
       _.each(_.keys(this.states), (function(_this) {
         return function(stateKey) {
-          var matches, stateOptions;
+          var matches, stateOptions, templateUrl;
           stateOptions = _this.states[stateKey];
           if (!stateOptions.transitionMethod) {
             throw new Error(stateKey + ' needs transitionMethod definitions');
@@ -47,7 +47,8 @@
               }
               return _results;
             })();
-            stateOptions._urlAsTemplate = _.template(stateOptions.url, null, {
+            templateUrl = stateOptions.url.replace(/\(.*\)/g, '');
+            stateOptions._urlAsTemplate = _.template(templateUrl, null, {
               interpolate: cachedParamMatcher
             });
             stateOptions._urlAsRegex = _this.router._routeToRegExp(stateOptions.url);
