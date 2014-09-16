@@ -198,14 +198,14 @@
 
   _watchForStateChange = (event) ->
     unless event.isDefaultPrevented()
-      stateAttr = $(event.target).attr('data-bb-state')
+      stateAttr = $(event.currentTarget).attr('data-bb-state')
       event.preventDefault()
 
       if stateAttr is ''
 
         # use convention to find state
         urlParser = document.createElement 'a'
-        urlParser.href = event.target.href
+        urlParser.href = event.currentTarget.href
         parsed = Backbone.Manager.config.urlToStateParser urlParser.pathname
 
         if managerQueue._events[parsed.state]
