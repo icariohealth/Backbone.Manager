@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.1.3
+ * @version v0.1.4
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -175,11 +175,11 @@
   _watchForStateChange = function(event) {
     var args, parsed, state, stateAttr, stateInfo, urlParser;
     if (!event.isDefaultPrevented()) {
-      stateAttr = $(event.target).attr('data-bb-state');
+      stateAttr = $(event.currentTarget).attr('data-bb-state');
       event.preventDefault();
       if (stateAttr === '') {
         urlParser = document.createElement('a');
-        urlParser.href = event.target.href;
+        urlParser.href = event.currentTarget.href;
         parsed = Backbone.Manager.config.urlToStateParser(urlParser.pathname);
         if (managerQueue._events[parsed.state]) {
           state = parsed.state;
