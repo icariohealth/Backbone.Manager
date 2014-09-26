@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.1.4
+ * @version v0.1.5
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -9,7 +9,7 @@
   var Manager, cachedParamMatcher, cachedPathSegmentMatcher, managerQueue, onloadUrl, _watchForStateChange;
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
-  cachedParamMatcher = /[:*]([^:)/]+)/g;
+  cachedParamMatcher = /[:*]([^(:)/]+)/g;
   cachedPathSegmentMatcher = /([^/]+)/g;
   Manager = (function() {
     Manager.prototype.states = {};

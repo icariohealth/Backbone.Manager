@@ -2,7 +2,7 @@
   managerQueue = _.extend {}, Backbone.Events
   onloadUrl = window.location.href
 
-  cachedParamMatcher = /[:*]([^:)/]+)/g
+  cachedParamMatcher = /[:*]([^(:)/]+)/g
   cachedPathSegmentMatcher = /([^/]+)/g
 
   # Manager(router) - router will be where the history navigation is pushed through
