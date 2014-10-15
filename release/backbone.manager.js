@@ -1,16 +1,17 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.1.5
+ * @version v0.1.6
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
  */
 (function(Backbone, _, $, window) {
-  var Manager, cachedParamMatcher, cachedPathSegmentMatcher, managerQueue, onloadUrl, _watchForStateChange;
+  var Manager, cachedParamMatcher, cachedPathSegmentMatcher, currentManager, managerQueue, onloadUrl, _watchForStateChange;
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
   cachedParamMatcher = /[:*]([^(:)/]+)/g;
   cachedPathSegmentMatcher = /([^/]+)/g;
+  currentManager = null;
   Manager = (function() {
     Manager.prototype.states = {};
 
@@ -74,12 +75,11 @@
     };
 
     Manager.prototype._handleLoadCallback = function(stateKey, stateOptions, args) {
+      currentManager = this;
       if (stateOptions.loadMethod) {
-        this.trigger('pre-load');
-        this.trigger('pre-load:' + stateKey, args);
+        this.trigger('load');
+        this.trigger('load:' + stateKey, args);
         this[stateOptions.loadMethod].apply(this, args);
-        this.trigger('post-load:' + stateKey, args);
-        this.trigger('post-load');
       }
     };
 
@@ -88,8 +88,12 @@
       if (historyHasUpdated == null) {
         historyHasUpdated = false;
       }
-      this.trigger('pre-transition');
-      this.trigger('pre-transition:' + stateKey);
+      if (currentManager && currentManager !== this) {
+        currentManager.trigger('exit');
+      }
+      currentManager = this;
+      this.trigger('transition');
+      this.trigger('transition:' + stateKey);
       if (stateOptions.url) {
         if (args instanceof Array) {
           argsObject = _.object(stateOptions._urlParams, args);
@@ -116,8 +120,6 @@
         data = args;
       }
       this[stateOptions.transitionMethod].apply(this, data);
-      this.trigger('post-transition:' + stateKey);
-      this.trigger('post-transition');
     };
 
     Manager.prototype._parseEvents = function() {

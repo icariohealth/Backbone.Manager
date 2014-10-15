@@ -184,14 +184,11 @@ Backbone.Manager will trigger state specific and general events as the transitio
 
 event | description
 ----- | -----------
-pre-load | incoming page load call for any state
-pre-load:\[state] (args) | incoming page load call for the [state]<br>(args) are the url params provided by the router
-post-load | incoming page load call completed for any state
-post-load:\[state] (args) | incoming page load call completed for the [state]<br>(args) are the url params provided by the router
-pre-transition | incoming transition call for any state
-pre-transition:[state] | incoming transition call for the [state]
-post-transition | transition call completed for any state
-post-transition:[state] | transition call completed for the [state]
+load | incoming page load call for any state
+load:\[state] (args) | incoming page load call for the [state]<br>(args) are the url params provided by the router
+transition | incoming transition call for any state
+transition:[state] | incoming transition call for the [state]
+exit | state is transitioning out of the current Manager, into a different one
 
 ## Triggering State Change
 There are four different ways to trigger a state change within Backbone.Manager:

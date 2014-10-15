@@ -192,106 +192,71 @@ describe 'Backbone.Manager.prototype', ->
 
       expect(-> manager._handleLoadCallback('', {})).not.to.throw Error
 
-    it 'should trigger generic and specific pre-events in that order', ->
+    it 'should trigger generic and specific load events in that order', ->
       manager = new (Backbone.Manager.extend
         test: ->
       )(@router)
 
       triggerSpy = @sinon.spy(manager, 'trigger')
-      triggerSpy.withArgs 'pre-load'
-      triggerSpy.withArgs 'pre-load:testState'
+      triggerSpy.withArgs 'load'
+      triggerSpy.withArgs 'load:testState'
 
       manager._handleLoadCallback('testState', {loadMethod: 'test'})
 
-      expect(triggerSpy.withArgs 'pre-load:testState').to.have.been.calledAfter triggerSpy.withArgs 'pre-load'
+      expect(triggerSpy.withArgs 'load:testState').to.have.been.calledAfter triggerSpy.withArgs 'load'
 
-    it 'should trigger pre-event before callback', ->
+    it 'should trigger load event before callback', ->
       manager = new (Backbone.Manager.extend
         test: ->
       )(@router)
 
-      triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'pre-load'
+      triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'load'
       callbackSpy = @sinon.spy manager, 'test'
 
       manager._handleLoadCallback('testState', {loadMethod: 'test'})
 
       expect(triggerSpy).to.have.been.calledBefore callbackSpy
-
-    it 'should trigger specific and generic post-events in that order', ->
-      manager = new (Backbone.Manager.extend
-        test: ->
-      )(@router)
-
-      triggerSpy = @sinon.spy(manager, 'trigger')
-      triggerSpy.withArgs 'post-load'
-      triggerSpy.withArgs 'post-load:testState'
-
-      manager._handleLoadCallback('testState', {loadMethod: 'test'})
-
-      expect(triggerSpy.withArgs 'post-load:testState').to.have.been.calledBefore triggerSpy.withArgs 'post-load'
-
-    it 'should trigger post-event after callback', ->
-      manager = new (Backbone.Manager.extend
-        test: ->
-      )(@router)
-
-      triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'post-load'
-      callbackSpy = @sinon.spy manager, 'test'
-
-      manager._handleLoadCallback('testState', {loadMethod: 'test'})
-
-      expect(triggerSpy).to.have.been.calledAfter callbackSpy
 
   describe '_handleTransitionCallback()', ->
-    it 'should trigger generic and specific pre-events in that order', ->
+    it 'should trigger exit event if previous state was in a fdifferent manager', ->
+      managerFirst = new (Backbone.Manager.extend
+        test: ->
+      )(@router)
+      managerSecond = new (Backbone.Manager.extend
+        test: ->
+      )(@router)
+
+      triggerSpy = @sinon.spy(managerFirst, 'trigger').withArgs 'exit'
+
+      managerFirst._handleTransitionCallback('testState', {transitionMethod: 'test'})
+      managerSecond._handleTransitionCallback('testState', {transitionMethod: 'test'})
+
+      expect(triggerSpy).to.have.been.calledOnce
+
+    it 'should trigger generic and specific transition events in that order', ->
       manager = new (Backbone.Manager.extend
         test: ->
       )(@router)
 
       triggerSpy = @sinon.spy(manager, 'trigger')
-      triggerSpy.withArgs 'pre-transition'
-      triggerSpy.withArgs 'pre-transition:testState'
+      triggerSpy.withArgs 'transition'
+      triggerSpy.withArgs 'transition:testState'
 
       manager._handleTransitionCallback('testState', {transitionMethod: 'test'})
 
-      expect(triggerSpy.withArgs 'pre-transition:testState').to.have.been.calledAfter triggerSpy.withArgs 'pre-transition'
+      expect(triggerSpy.withArgs 'transition:testState').to.have.been.calledAfter triggerSpy.withArgs 'transition'
 
-    it 'should trigger pre-event before callback', ->
+    it 'should trigger transition before callback', ->
       manager = new (Backbone.Manager.extend
         test: ->
       )(@router)
 
-      triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'pre-transition'
+      triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'transition'
       callbackSpy = @sinon.spy manager, 'test'
 
       manager._handleTransitionCallback('testState', {transitionMethod: 'test'})
 
       expect(triggerSpy).to.have.been.calledBefore callbackSpy
-
-    it 'should trigger specific and generic post-events in that order', ->
-      manager = new (Backbone.Manager.extend
-        test: ->
-      )(@router)
-
-      triggerSpy = @sinon.spy(manager, 'trigger')
-      triggerSpy.withArgs 'post-transition'
-      triggerSpy.withArgs 'post-transition:testState'
-
-      manager._handleTransitionCallback('testState', {transitionMethod: 'test'})
-
-      expect(triggerSpy.withArgs 'post-transition:testState').to.have.been.calledBefore triggerSpy.withArgs 'post-transition'
-
-    it 'should trigger post-event after callback', ->
-      manager = new (Backbone.Manager.extend
-        test: ->
-      )(@router)
-
-      triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'post-transition'
-      callbackSpy = @sinon.spy manager, 'test'
-
-      manager._handleTransitionCallback('testState', {transitionMethod: 'test'})
-
-      expect(triggerSpy).to.have.been.calledAfter callbackSpy
 
     context 'state url defined', ->
       before ->

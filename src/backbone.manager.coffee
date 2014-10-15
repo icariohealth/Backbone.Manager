@@ -5,6 +5,8 @@
   cachedParamMatcher = /[:*]([^(:)/]+)/g
   cachedPathSegmentMatcher = /([^/]+)/g
 
+  currentManager = null
+
   # Manager(router) - router will be where the history navigation is pushed through
   #
   #  When state change is triggered:
@@ -96,12 +98,13 @@
       return
 
     _handleLoadCallback: (stateKey, stateOptions, args) ->
+      currentManager = @
+
       if stateOptions.loadMethod
-        @trigger 'pre-load'
-        @trigger 'pre-load:'+stateKey, args
+        @trigger 'load'
+        @trigger 'load:'+stateKey, args
+
         @[stateOptions.loadMethod].apply this, args
-        @trigger 'post-load:'+stateKey, args
-        @trigger 'post-load'
       return
 
     # Reached in two ways:
@@ -112,8 +115,12 @@
     #
     # Anytime args is an array, its last value will be always assumed to be queryParams string
     _handleTransitionCallback: (stateKey, stateOptions, args, historyHasUpdated = false) ->
-      @trigger 'pre-transition'
-      @trigger 'pre-transition:'+stateKey
+      if currentManager and currentManager isnt @
+        currentManager.trigger 'exit'
+      currentManager = @
+
+      @trigger 'transition'
+      @trigger 'transition:'+stateKey
 
       if stateOptions.url
         # args is an array when:
@@ -153,9 +160,6 @@
         data = args
 
       @[stateOptions.transitionMethod].apply this, data
-
-      @trigger 'post-transition:'+stateKey
-      @trigger 'post-transition'
       return
 
     _parseEvents: ->
