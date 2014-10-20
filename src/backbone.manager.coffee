@@ -16,15 +16,11 @@
   #    - appropriate post events (load/transition) are triggered, both generic and state specific
   #
   #  Triggered Events:
-  #    pre-load                 - indicates incoming page load call for all states
-  #    pre-load:[state] (args)  - indicates incoming page load call for the state
-  #    post-load                - indicates incoming page load call completed for all states
-  #    post-load:[state] (args) - indicates incoming page load call completed for the state
+  #    load                - incoming page load call for any state
+  #    load:[state] (args) - incoming page load call for the [state]
   #
-  #    pre-transition          - indicates incoming transition call for all states
-  #    pre-transition:[state]  - indicates incoming transition call for the state
-  #    post-transition         - indicates transition call completed for all states
-  #    post-transition:[state] - indicates transition call completed for the state
+  #    transition          - incoming transition call for all states
+  #    transition:[state]  - incoming transition call for the [state]
   #
   class Manager
     # state structure:
@@ -41,7 +37,7 @@
 
     # event structure based on defined Manager triggered events
     # {
-    #   'pre-transition:users': 'showAlert'
+    #   'transition:users': 'showAlert'
     # }
     events: {}
 

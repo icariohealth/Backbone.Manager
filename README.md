@@ -51,8 +51,8 @@ UsersManager = Backbone.Manager.extend
       transitionMethod: 'switchToUser'
 
   events:
-    'pre-load:users.detail': 'prepareUser'
-    'post-transition': 'logToAnalytics'
+    'load:users.detail': 'prepareUser'
+    'transition': 'logToAnalytics'
     
   initialize: ->
     # ...
