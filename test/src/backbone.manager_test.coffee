@@ -20,6 +20,37 @@ describe 'Backbone.Manager', ->
 
       expect(triggerStub).to.have.been.calledWith 'test', [1,2]
 
+  describe 'goByUrl()', ->
+    beforeEach ->
+      Backbone.Manager._testAccessor.managerQueue._events = {}
+    afterEach ->
+      delete Backbone.Manager._testAccessor.managerQueue._events
+
+    it "should pass query params without the '?'", ->
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager._testAccessor.managerQueue._events['abc'] = {}
+      Backbone.Manager.goByUrl '/abc?a=b'
+      delete Backbone.Manager._testAccessor.managerQueue._events['abc']
+
+      expect(triggerStub).to.have.been.calledWith 'abc', ['a=b']
+
+    it 'should trigger state based on convention', ->
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail'] = {}
+      Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
+      delete Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail']
+
+      expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2', '']
+
+    it 'should trigger the * state and pass the pathname if there are no matching states', ->
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
+
+      expect(triggerStub).to.have.been.calledWith '*', ['/a/1/b/2']
+
   describe 'config.urlToStateParser', ->
     it 'should build a simple state from simple plural url', ->
       stateObject = Backbone.Manager.config.urlToStateParser('/test')
@@ -369,21 +400,12 @@ describe 'Backbone.Manager Closure Scope', ->
           isDefaultPrevented: -> false
           currentTarget: $("<a data-bb-state href='http://a.com/a/1/b/2'/>")[0]
 
-      it 'should trigger state based on convention if it exists', ->
-        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
-
-        Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail'] = {}
-        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
-        delete Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail']
-
-        expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2', '']
-
-      it 'should trigger the * state and pass the pathname if there are no matching states', ->
-        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+      it 'should run goByUrl()', ->
+        goByUrlStub = @sinon.stub Backbone.Manager, 'goByUrl'
 
         Backbone.Manager._testAccessor._watchForStateChange @mockEvent
 
-        expect(triggerStub).to.have.been.calledWith '*', ['/a/1/b/2']
+        expect(goByUrlStub).to.have.been.calledWith 'http://a.com/a/1/b/2'
 
     context 'bb-state has value', ->
       it 'must add null to end of args for callback', ->

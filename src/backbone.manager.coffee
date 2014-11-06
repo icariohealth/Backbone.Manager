@@ -170,6 +170,25 @@
     @go: (state, args) ->
       managerQueue.trigger state, args
 
+    # a simple string w/o '/' will be treated as relative, just like anchor hrefs
+    @goByUrl: (url) ->
+      urlParser = document.createElement 'a'
+      urlParser.href = url
+
+      # use convention to find state
+      parsed = Backbone.Manager.config.urlToStateParser urlParser.pathname
+
+      if managerQueue._events[parsed.state]
+        state = parsed.state
+        args = parsed.args
+
+        queryParams = urlParser.search.replace(/^\?/, '')
+        args.push queryParams # Add query params, like the routers do
+      else
+        state = '*'
+        args = [urlParser.pathname]
+      Backbone.Manager.go state, args
+
     @extend: Backbone.Model.extend # todo: Be smarter about this later
 
     @config:
@@ -202,19 +221,7 @@
       event.preventDefault()
 
       if stateAttr is ''
-
-        # use convention to find state
-        urlParser = document.createElement 'a'
-        urlParser.href = event.currentTarget.href
-        parsed = Backbone.Manager.config.urlToStateParser urlParser.pathname
-
-        if managerQueue._events[parsed.state]
-          state = parsed.state
-          args = parsed.args
-          args.push urlParser.search # Add query params, like the routers do # todo strip '?'
-        else
-          state = '*'
-          args = [urlParser.pathname]
+        Backbone.Manager.goByUrl event.currentTarget.href
       else
 
         # parse the passed info
