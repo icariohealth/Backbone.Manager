@@ -1,5 +1,5 @@
 jsdom = require('jsdom');
-window = jsdom.jsdom().createWindow('<html><head><script></script></head><body></body></html>');
+window = jsdom.jsdom('<html><head><script></script></head><body></body></html>').parentWindow;
 global.document = window.document;
 global.addEventListener = window.addEventListener;
 global.$ = require('jquery');
