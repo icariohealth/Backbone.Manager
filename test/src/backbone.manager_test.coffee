@@ -21,56 +21,42 @@ describe 'Backbone.Manager', ->
       expect(triggerStub).to.have.been.calledWith 'test', [1,2]
 
   describe 'goByUrl()', ->
-    beforeEach ->
-      Backbone.Manager._testAccessor.managerQueue._events = {}
     afterEach ->
-      delete Backbone.Manager._testAccessor.managerQueue._events
+      Backbone.Manager._testAccessor.managers.pop()
 
-    it "should pass query params without the '?'", ->
-      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+    it "should pass query params with the path", ->
+      manager = Object.create Backbone.Manager.prototype
+      Backbone.Manager._testAccessor.managers.push manager
+      managerStub = @sinon.stub(manager, '_parseStateFromUrl')
 
-      Backbone.Manager._testAccessor.managerQueue._events['abc'] = {}
+      @sinon.stub Backbone.Manager, 'go'
+
       Backbone.Manager.goByUrl '/abc?a=b'
-      delete Backbone.Manager._testAccessor.managerQueue._events['abc']
 
-      expect(triggerStub).to.have.been.calledWith 'abc', ['a=b']
+      expect(managerStub).to.have.been.calledWith 'abc?a=b'
 
-    it 'should trigger state based on convention', ->
+    it 'should trigger pass parsed info from the manager to go', ->
+      manager = Object.create Backbone.Manager.prototype
+      @sinon.stub(manager, '_parseStateFromUrl').returns
+        state: 'a.detail.b.detail'
+        args: ['1', '2', '']
+      Backbone.Manager._testAccessor.managers.push manager
       triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
-      Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail'] = {}
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
-      delete Backbone.Manager._testAccessor.managerQueue._events['a.detail.b.detail']
 
       expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2', '']
 
     it 'should trigger the * state and pass the pathname if there are no matching states', ->
+      manager = Object.create Backbone.Manager.prototype
+      @sinon.stub(manager, '_parseStateFromUrl').returns undefined
+      Backbone.Manager._testAccessor.managers.push manager
+
       triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
 
-      expect(triggerStub).to.have.been.calledWith '*', ['/a/1/b/2']
-
-  describe 'config.urlToStateParser', ->
-    it 'should build a simple state from simple plural url', ->
-      stateObject = Backbone.Manager.config.urlToStateParser('/test')
-
-      expect(stateObject.state).to.equal 'test'
-
-    it 'should build a detail state from simple url with id', ->
-      stateObject = Backbone.Manager.config.urlToStateParser('/test/1')
-
-      expect(stateObject.state).to.equal 'test.detail'
-
-    it 'should build a complex detail state from complex url with multiple ids', ->
-      stateObject = Backbone.Manager.config.urlToStateParser('/testa/1/testb/2')
-
-      expect(stateObject.state).to.equal 'testa.detail.testb.detail'
-
-    it 'should return args with ids from url with multiple ids, in order', ->
-      stateObject = Backbone.Manager.config.urlToStateParser('/a/1/b/2/c/3/d/4')
-
-      expect(stateObject.args).to.eql ['1','2','3','4']
+      expect(triggerStub).to.have.been.calledWith '*', ['a/1/b/2']
 
 describe 'Backbone.Manager.prototype', ->
   beforeEach ->
@@ -383,6 +369,32 @@ describe 'Backbone.Manager.prototype', ->
       )(@router)
 
       expect(onStub).to.have.been.calledWith 'testEvent', manager.testFunc
+
+  describe '_parseStateFromUrl()', ->
+    beforeEach ->
+      @manager = new (Backbone.Manager.extend
+        states:
+          test:
+            transitionMethod: 'a'
+            url: 'a/:a_id/b/:b_id'
+      )(@router)
+
+    it 'should return undefined if no match found', ->
+      expect(@manager._parseStateFromUrl('/abc')).to.equal undefined
+
+    it 'should return object when match found', ->
+      parsedObject = @manager._parseStateFromUrl 'a/1/b/2?c=d'
+
+      expect(parsedObject).to.deep.equal
+        state: 'test'
+        args: ['1','2','c=d']
+
+    it 'should use router._extractParameters to get args', ->
+      @extractParamsSpy = @sinon.spy @router, '_extractParameters'
+
+      @manager._parseStateFromUrl 'a/1/b/2?c=d'
+
+      expect(@extractParamsSpy).to.have.been.called
 
 describe 'Backbone.Manager Closure Scope', ->
   describe '_watchForStateChange()', ->

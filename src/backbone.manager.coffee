@@ -1,9 +1,9 @@
 ((Backbone, _, $, window) ->
+  managers = []
   managerQueue = _.extend {}, Backbone.Events
   onloadUrl = window.location.href
 
   cachedParamMatcher = /[:*]([^(:)/]+)/g
-  cachedPathSegmentMatcher = /([^/]+)/g
 
   currentManager = null
 
@@ -42,6 +42,7 @@
     events: {}
 
     constructor: (router, options) ->
+      managers.push @
       @router = router
       _.extend @, Backbone.Events
       @_parseStates()
@@ -164,6 +165,19 @@
         return
       return
 
+    _parseStateFromUrl: (url) ->
+      stateKey = _.find _.keys(@states), (stateKey) => @states[stateKey]._urlAsRegex.test(url)
+
+      if stateKey
+        data = @router._extractParameters @states[stateKey]._urlAsRegex, url
+
+        return {
+          state: stateKey
+          args: data
+        }
+
+      return
+
     # for test stubs
     _getWindowHref: -> window?.location.href
 
@@ -174,44 +188,23 @@
     @goByUrl: (url) ->
       urlParser = document.createElement 'a'
       urlParser.href = url
+      path = urlParser.pathname.replace(/^\//, '')+urlParser.search
 
-      # use convention to find state
-      parsed = Backbone.Manager.config.urlToStateParser urlParser.pathname
+      parsedUrl = null
+      _.find managers, (manager) -> return parsedUrl = manager._parseStateFromUrl(path)
 
-      if managerQueue._events[parsed.state]
-        state = parsed.state
-        args = parsed.args
-
-        queryParams = urlParser.search.replace(/^\?/, '')
-        args.push queryParams # Add query params, like the routers do
+      if parsedUrl
+        state = parsedUrl.state
+        args = parsedUrl.args
       else
         state = '*'
-        args = [urlParser.pathname]
-      Backbone.Manager.go state, args
+        args = [path]
 
-    @extend: Backbone.Model.extend # todo: Be smarter about this later
+      Manager.go state, args
 
-    @config:
-      # Expose in config to allow override
-      # Expected to return {state: 'state', args:[]}
-      urlToStateParser: (urlPath) ->
-        stateObj =
-          state: ''
-          args: []
-        segments = while matches = cachedPathSegmentMatcher.exec(urlPath)
-          matches[1]
+    @extend: Backbone.Model.extend # can't access Backbone's closure-scoped `extend` directly
 
-        _.each segments, (segment, i) ->
-          if i % 2
-            stateObj.args.push segments[i]
-            stateObj.state += 'detail'
-          else
-            stateObj.state += segments[i]
-
-          unless i is segments.length-1
-            stateObj.state += '.'
-
-        stateObj
+    @config: {} # For the future
 
   Backbone.Manager = Manager
 
@@ -221,7 +214,7 @@
       event.preventDefault()
 
       if stateAttr is ''
-        Backbone.Manager.goByUrl event.currentTarget.href
+        Manager.goByUrl event.currentTarget.href
       else
 
         # parse the passed info
@@ -243,6 +236,7 @@
   `/* gulp-strip-release */`
   Backbone.Manager._testAccessor =
     overrideOnloadUrl: (override) -> onloadUrl = override
+    managers: managers
     managerQueue: managerQueue
     _watchForStateChange: _watchForStateChange
   `/* end-gulp-strip-release */`
