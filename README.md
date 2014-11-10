@@ -238,7 +238,7 @@ The first two examples are explicit state calls, but the third uses the url to i
 ## Change Log
 ### Master
 * __Breaking:__ Move from conventional `<a href>`-to-state translation to direct url matching. This means that old conventional `data-bb-state` triggers for states without url definitions will no longer work.
-* Added `Backbone.Manager.goByUrl` to back data-bb-state href functionality
+* Added `Backbone.Manager.goByUrl` to back `data-bb-state` href functionality
 
 ### 0.1.6
 * __Breaking:__ Removed pre/post events... there was no guarantee of pre since it was async
@@ -247,4 +247,4 @@ The first two examples are explicit state calls, but the third uses the url to i
 * Bugfix: Param matcher isn't excluding `(`
 
 ### 0.1.4
-* Bugfix: Use currentTarget instead of target for anchor state changes
+* Bugfix: Use currentTarget instead of target for anchor state changes - @jmcnevin
