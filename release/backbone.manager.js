@@ -1,16 +1,16 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.1.6
+ * @version v0.2.0
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
  */
 (function(Backbone, _, $, window) {
-  var Manager, cachedParamMatcher, cachedPathSegmentMatcher, currentManager, managerQueue, onloadUrl, _watchForStateChange;
+  var Manager, cachedParamMatcher, currentManager, managerQueue, managers, onloadUrl, _watchForStateChange;
+  managers = [];
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
   cachedParamMatcher = /[:*]([^(:)/]+)/g;
-  cachedPathSegmentMatcher = /([^/]+)/g;
   currentManager = null;
   Manager = (function() {
     Manager.prototype.states = {};
@@ -18,6 +18,7 @@
     Manager.prototype.events = {};
 
     function Manager(router, options) {
+      managers.push(this);
       this.router = router;
       _.extend(this, Backbone.Events);
       this._parseStates();
@@ -130,6 +131,22 @@
       })(this));
     };
 
+    Manager.prototype._parseStateFromUrl = function(url) {
+      var data, stateKey;
+      stateKey = _.find(_.keys(this.states), (function(_this) {
+        return function(stateKey) {
+          return _this.states[stateKey]._urlAsRegex.test(url);
+        };
+      })(this));
+      if (stateKey) {
+        data = this.router._extractParameters(this.states[stateKey]._urlAsRegex, url);
+        return {
+          state: stateKey,
+          args: data
+        };
+      }
+    };
+
     Manager.prototype._getWindowHref = function() {
       return window != null ? window.location.href : void 0;
     };
@@ -138,59 +155,40 @@
       return managerQueue.trigger(state, args);
     };
 
+    Manager.goByUrl = function(url) {
+      var args, parsedUrl, path, state, urlParser;
+      urlParser = document.createElement('a');
+      urlParser.href = url;
+      path = urlParser.pathname.replace(/^\//, '') + urlParser.search;
+      parsedUrl = null;
+      _.find(managers, function(manager) {
+        return parsedUrl = manager._parseStateFromUrl(path);
+      });
+      if (parsedUrl) {
+        state = parsedUrl.state;
+        args = parsedUrl.args;
+      } else {
+        state = '*';
+        args = [path];
+      }
+      return Manager.go(state, args);
+    };
+
     Manager.extend = Backbone.Model.extend;
 
-    Manager.config = {
-      urlToStateParser: function(urlPath) {
-        var matches, segments, stateObj;
-        stateObj = {
-          state: '',
-          args: []
-        };
-        segments = (function() {
-          var _results;
-          _results = [];
-          while (matches = cachedPathSegmentMatcher.exec(urlPath)) {
-            _results.push(matches[1]);
-          }
-          return _results;
-        })();
-        _.each(segments, function(segment, i) {
-          if (i % 2) {
-            stateObj.args.push(segments[i]);
-            stateObj.state += 'detail';
-          } else {
-            stateObj.state += segments[i];
-          }
-          if (i !== segments.length - 1) {
-            return stateObj.state += '.';
-          }
-        });
-        return stateObj;
-      }
-    };
+    Manager.config = {};
 
     return Manager;
 
   })();
   Backbone.Manager = Manager;
   _watchForStateChange = function(event) {
-    var args, parsed, state, stateAttr, stateInfo, urlParser;
+    var args, state, stateAttr, stateInfo;
     if (!event.isDefaultPrevented()) {
       stateAttr = $(event.currentTarget).attr('data-bb-state');
       event.preventDefault();
       if (stateAttr === '') {
-        urlParser = document.createElement('a');
-        urlParser.href = event.currentTarget.href;
-        parsed = Backbone.Manager.config.urlToStateParser(urlParser.pathname);
-        if (managerQueue._events[parsed.state]) {
-          state = parsed.state;
-          args = parsed.args;
-          args.push(urlParser.search);
-        } else {
-          state = '*';
-          args = [urlParser.pathname];
-        }
+        Manager.goByUrl(event.currentTarget.href);
       } else {
         stateInfo = stateAttr.split('(', 2);
         state = stateInfo[0];
