@@ -10,7 +10,7 @@ Backbone.Manager is a state-based routing/control manager for Backbone. It remov
 * Intuitive state change
 * Differentiate between pageload and triggered changes
 * Remove temptation of view<->router relationships
-* Conventional state change from anchor href's
+* Automatic state change from clicked anchors
 * Programmatic state change ability
 
 This:
@@ -90,22 +90,9 @@ These are able to be triggered via:
 * Initial Pageload
 * Window.popstate of '/users/1'
 * `Backbone.Manager.go('users.detail',[1])`
-* `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
-* Conventional `data-bb-state` trigger: `<a data-bb-state href="/users/1">`
-
-##### Url Convention
-For url-related states, there is a convention for state name that is helpful to follow, based on the url itself. The convention is not _required_, but without it you will not inherit the automatic conventional `data-bb-state` trigger. Here is how urls are conventionally translated to a state name:
-
-Url            | State Name
--------------- | ----------
-/users         | users
-/users/1       | users.detail
-/users/1/books | users.detail.books
-/sections/1/2  | sections.detail.2 (not good*)
-
-\* Never rely on convention for states associated with this type of url.
-
-The url definition is essentially the same url you would define in a Router's `routes` definition. In fact, this url is passed through to the router. Param values that match through this url are passed into the necessary functions as a normal route's callback would be. **NOTE: Currently RegExp values are not supported**
+* `Backbone.Manager.goByUrl('/users/1')`
+* Direct `data-bb-state` trigger: `<a data-bb-state="users.detail([1])">`
+* Inferred `data-bb-state` trigger: `<a data-bb-state href="/users/1">`
 
 ---
 ### States __without__ `url` definitions
@@ -113,13 +100,12 @@ The url definition is essentially the same url you would define in a Router's `r
 These are able to be triggered via:
 * Programmatic: `Backbone.Manager.go('users.detail',[1])`
 * `data-bb-state` definition: `<a data-bb-state="users.detail([1])">`
-* Conventional `data-bb-state` trigger: `<a data-bb-state href="/users/1">`
 
 ---
 ### `loadMethod` *optional*
 ```coffee
 states:
-  stateName:
+  'users.detail':
     url: 'users/:id'
     loadMethod: 'callback' # String representing method name for callback
 ```
@@ -134,7 +120,7 @@ Callback used when any non-loadMethod related state change occurs.
 #### When `url` Is Defined
 ```coffee
 states:
-  stateName:
+  'users.detail.books.detail':
     url: 'users/:a/books/:b'
     transitionMethod: 'callback' # String representing method name for callback
 ```
@@ -148,11 +134,12 @@ trigger | callback method
 `Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **not important**) | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **not important**) | `callback(1,2,null,{url: 'users/1/books/2'})`
+`Backbone.Manager.goByUrl('/users/1/books/2')` | `callback(1,2,null,{url: 'users/1/books/2'})`
 `<a data-bb-state href="/users/1/books/2">` | `callback(1,2,null,{url: 'users/1/books/2'})`
 #### When `url` Is *NOT* Defined
 ```coffee
 states:
-  stateName:
+  'users.detail.books.detail':
     transitionMethod: 'callback' # String representing method name for callback
 ```
 Callback method takes the params in order as passed. Order is important, even when an object is used for the args. So:
@@ -163,7 +150,6 @@ trigger | callback method
 `Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2)`
 `<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
-`<a data-bb-state href="/users/1/books/2">` | `callback(1,2)`
 
 ## The `'*'` State
 The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transition for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
@@ -215,6 +201,19 @@ params:
   * see [transitionMethod](#transitionmethod) for details on what happens with the args
 
 ---
+### `Backbone.Manager.goByUrl(url)`
+The programmatic way of triggering state changes via url matching.
+**Example Usage:**
+```coffee
+events:
+  'click dd': 'showUser'
+showUser: ->
+  Backbone.Manager.goByUrl('/users/1')
+```
+params:
+* url (tested against url matchers defined in states, will use * state if none are found)
+
+---
 ### Click on `<a data-bb-state>`
 The `data-bb-state` attribute is watched for by Backbone.Manager on all anchor tag clicks that bubble up to document. If event propagation is disabled or preventDefault gets set on that event, then Backbone.Manager will not trigger.
 
@@ -226,14 +225,26 @@ The `data-bb-state` attribute is watched for by Backbone.Manager on all anchor t
 ```
 The format for the `data-bb-state` value is `'statename([args]or{args})'`, where the args are passed to the callback as described in [transitionMethod](#transitionmethod).
 
-All of the examples above will match to the `users.detail` state name and all will trigger the `users.detail.transitionMethod` callback.
-
-The first two examples are explicit state calls, but the third uses the [url convention](#url-convention) to determine the state name and the args. To use the conventional trigger, `data-bb-state` must be defined on the anchor and it must have an `href` url defined.
+The first two examples are explicit state calls, but the third uses the url to infer the state (it actually calls `goByUrl`). The explicit triggers in the examples above will trigger the `users.detail.transitionMethod` callback. To use the inferred trigger, `data-bb-state` must be defined on the anchor and it must have an `href` url defined.
 
 ## Additional Resources
-* [Slides](http://slides.com/johnathonsanders/backbone-manager)
+* [Slides (v0.1.5)](http://slides.com/johnathonsanders/backbone-manager)
 
-##For Contributors
+##Contributors
 * PR's should only contain changes to .coffee files, the release js will be built later
 * Run `gulp` to autocompile coffeescript (both src and test/src) into /out for testing
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
+
+## Change Log
+### Master
+* __Breaking:__ Move from conventional `<a href>`-to-state translation to direct url matching. This means that old conventional `data-bb-state` triggers for states without url definitions will no longer work.
+* Added `Backbone.Manager.goByUrl` to back data-bb-state href functionality
+
+### 0.1.6
+* __Breaking:__ Removed pre/post events... there was no guarantee of pre since it was async
+
+### 0.1.5
+* Bugfix: Param matcher isn't excluding `(`
+
+### 0.1.4
+* Bugfix: Use currentTarget instead of target for anchor state changes
