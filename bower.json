@@ -1,0 +1,24 @@
+{
+  "name": "backbone.manager",
+  "version": "0.2.0",
+  "homepage": "https://github.com/novu/Backbone.Manager",
+  "authors": [
+    "Johnathon Sanders <johnathon.sanders@novu.com>"
+  ],
+  "description": "State-Based Routing/Control Manager for Backbone",
+  "main": "./release/backbone.manager.js",
+  "keywords": [
+    "\"backbone\"",
+    "\"backbone.manager\""
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "gulpfile.js",
+    "src",
+    "test",
+    "tests"
+  ]
+}
