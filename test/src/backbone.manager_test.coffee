@@ -66,7 +66,7 @@ describe 'Backbone.Manager', ->
       Backbone.Manager._testAccessor.managers.push manager1
 
       manager2 = Object.create Backbone.Manager.prototype
-      manager2Parse = @sinon.stub(manager2, '_parseStateFromUrl').returns
+      @sinon.stub(manager2, '_parseStateFromUrl').returns
         state: 'a.detail.b.detail'
         args: ['1', '2', '']
       Backbone.Manager._testAccessor.managers.push manager2
@@ -76,6 +76,25 @@ describe 'Backbone.Manager', ->
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
 
       expect(manager1Parse).to.not.have.been.called
+      Backbone.Manager._testAccessor.managers.pop()
+
+    it 'should not reverse actual managers array', ->
+      manager1 = Object.create Backbone.Manager.prototype
+      manager1.id = 1
+      @sinon.stub(manager1, '_parseStateFromUrl').returns undefined
+      Backbone.Manager._testAccessor.managers.push manager1
+
+      manager2 = Object.create Backbone.Manager.prototype
+      manager2.id = 2
+      @sinon.stub(manager2, '_parseStateFromUrl').returns undefined
+      Backbone.Manager._testAccessor.managers.push manager2
+
+      @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
+      expect(Backbone.Manager._testAccessor.managers[0].id).to.equal manager1.id
+      Backbone.Manager._testAccessor.managers.pop()
+
 
 describe 'Backbone.Manager.prototype', ->
   beforeEach ->

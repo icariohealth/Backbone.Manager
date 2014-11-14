@@ -191,7 +191,7 @@
       path = urlParser.pathname.replace(/^\//, '')+urlParser.search
 
       parsedUrl = null
-      _.find managers.reverse(), (manager) -> return parsedUrl = manager._parseStateFromUrl(path)
+      _.find managers.slice().reverse(), (manager) -> return parsedUrl = manager._parseStateFromUrl(path)
 
       if parsedUrl
         state = parsedUrl.state
