@@ -58,6 +58,25 @@ describe 'Backbone.Manager', ->
 
       expect(triggerStub).to.have.been.calledWith '*', ['a/1/b/2']
 
+    it 'should trigger the lastly created matching manager first', ->
+      manager1 = Object.create Backbone.Manager.prototype
+      manager1Parse = @sinon.stub(manager1, '_parseStateFromUrl').returns
+        state: 'a.detail.b.detail'
+        args: ['1', '2', '']
+      Backbone.Manager._testAccessor.managers.push manager1
+
+      manager2 = Object.create Backbone.Manager.prototype
+      manager2Parse = @sinon.stub(manager2, '_parseStateFromUrl').returns
+        state: 'a.detail.b.detail'
+        args: ['1', '2', '']
+      Backbone.Manager._testAccessor.managers.push manager2
+
+      @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
+
+      expect(manager1Parse).to.not.have.been.called
+
 describe 'Backbone.Manager.prototype', ->
   beforeEach ->
     @router = new Backbone.Router()
