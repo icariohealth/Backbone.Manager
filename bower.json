@@ -8,8 +8,8 @@
   "description": "State-Based Routing/Control Manager for Backbone",
   "main": "./release/backbone.manager.js",
   "keywords": [
-    "\"backbone\"",
-    "\"backbone.manager\""
+    "backbone",
+    "backbone.manager"
   ],
   "license": "MIT",
   "ignore": [
