@@ -236,6 +236,9 @@ The first two examples are explicit state calls, but the third uses the url to i
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+### 0.2.1
+* Bugfix: Managers are being traversed in the wrong order for `goByUrl`
+
 ### 0.2.0
 * __Breaking:__ Move from conventional `<a href>`-to-state translation to direct url matching. This means that old conventional `data-bb-state` triggers for states without url definitions will no longer work.
 * Added `Backbone.Manager.goByUrl` to back `data-bb-state` href functionality

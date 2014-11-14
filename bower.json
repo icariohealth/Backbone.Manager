@@ -1,10 +1,8 @@
 {
-  "name": "backbone.manager",
-  "version": "0.2.0",
+  "name": "Backbone.Manager",
+  "version": "0.2.1",
   "homepage": "https://github.com/novu/Backbone.Manager",
-  "authors": [
-    "Johnathon Sanders <johnathon.sanders@novu.com>"
-  ],
+  "author": "Johnathon Sanders",
   "description": "State-Based Routing/Control Manager for Backbone",
   "main": "./release/backbone.manager.js",
   "keywords": [
