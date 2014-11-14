@@ -236,6 +236,9 @@ The first two examples are explicit state calls, but the third uses the url to i
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+### 0.2.2
+* Bugfix: Managers in wrong order after `goByUrl` runs
+
 ### 0.2.1
 * Bugfix: Managers are being traversed in the wrong order for `goByUrl`
 
