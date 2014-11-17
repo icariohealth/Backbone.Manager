@@ -182,6 +182,8 @@
     _getWindowHref: -> window?.location.href
 
     @go: (state, args) ->
+      unless args
+        args = []
       managerQueue.trigger state, args
 
     # a simple string w/o '/' will be treated as relative, just like anchor hrefs

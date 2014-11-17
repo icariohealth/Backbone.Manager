@@ -13,6 +13,13 @@ afterEach ->
 
 describe 'Backbone.Manager', ->
   describe 'go()', ->
+    it 'should turn undefined args into [] for es3', ->
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+      Backbone.Manager.go 'test'
+
+      expect(triggerStub).to.have.been.calledWith 'test', []
+
     it 'should call the managerQueue with state change request', ->
       triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
@@ -273,7 +280,7 @@ describe 'Backbone.Manager.prototype', ->
       expect(triggerSpy).to.have.been.calledBefore callbackSpy
 
   describe '_handleTransitionCallback()', ->
-    it 'should trigger exit event if previous state was in a fdifferent manager', ->
+    it 'should trigger exit event if previous state was in a different manager', ->
       managerFirst = new (Backbone.Manager.extend
         test: ->
       )(@router)
