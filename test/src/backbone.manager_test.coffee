@@ -24,7 +24,7 @@ describe 'Backbone.Manager', ->
     afterEach ->
       Backbone.Manager._testAccessor.managers.pop()
 
-    it "should pass query params with the path", ->
+    it 'should pass query params with the path', ->
       manager = Object.create Backbone.Manager.prototype
       Backbone.Manager._testAccessor.managers.push manager
       managerStub = @sinon.stub(manager, '_parseStateFromUrl')
@@ -419,6 +419,15 @@ describe 'Backbone.Manager.prototype', ->
 
     it 'should return undefined if no match found', ->
       expect(@manager._parseStateFromUrl('/abc')).to.equal undefined
+
+    it 'should not die if there is no url for a state', ->
+      manager = new (Backbone.Manager.extend
+        states:
+          test:
+            transitionMethod: 'a'
+      )(@router)
+
+      manager._parseStateFromUrl 'a/1/b/2?c=d'
 
     it 'should return object when match found', ->
       parsedObject = @manager._parseStateFromUrl 'a/1/b/2?c=d'

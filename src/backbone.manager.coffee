@@ -166,7 +166,7 @@
       return
 
     _parseStateFromUrl: (url) ->
-      stateKey = _.find _.keys(@states), (stateKey) => @states[stateKey]._urlAsRegex.test(url)
+      stateKey = _.find _.keys(@states), (stateKey) => @states[stateKey]._urlAsRegex?.test(url)
 
       if stateKey
         data = @router._extractParameters @states[stateKey]._urlAsRegex, url
