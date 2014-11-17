@@ -1,6 +1,6 @@
 {
   "name": "Backbone.Manager",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "homepage": "https://github.com/novu/Backbone.Manager",
   "author": "Johnathon Sanders",
   "description": "State-Based Routing/Control Manager for Backbone",

@@ -236,6 +236,10 @@ The first two examples are explicit state calls, but the third uses the url to i
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+### 0.2.4
+* Bugfix: `go` still requires args of some sort even if url contains no params
+* Bugfix: `go` breaks in ie8 if no arguments are provided
+
 ### 0.2.3
 * Bugfix: `goByUrl` dies if there is a state that doesn't have a url defined
 
