@@ -17,7 +17,7 @@
   #
   #  Triggered Events:
   #    load                - incoming page load call for any state
-  #    load:[state] (args) - incoming page load call for the [state]
+  #    load:[state] (params) - incoming page load call for the [state]
   #
   #    transition          - incoming transition call for all states
   #    transition:[state]  - incoming transition call for the [state]
@@ -76,42 +76,44 @@
             return
 
         # Start listening for our state transition calls
-        @listenTo managerQueue, stateKey, (args) =>
-          @_handleTransitionCallback stateKey, stateOptions, args
+        @listenTo managerQueue, stateKey, (params, transitionOptions) =>
+          @_handleTransitionCallback stateKey, stateOptions, params, transitionOptions
           return
       return
 
-    _routeCallbackChooser: (stateKey, stateOptions, args) ->
+    _routeCallbackChooser: (stateKey, stateOptions, params) ->
 
       # Only run loadCallback if this is truly the very first callback from the pageload popstate
       # In other cases, Backbone.history has already potentially changed the url for router nav,
       # so we check against it
       if onloadUrl and @_getWindowHref() is onloadUrl # todo: verify this works cross browser & w/ hash
-        @_handleLoadCallback stateKey, stateOptions, args
+        @_handleLoadCallback stateKey, stateOptions, params
       else
-        @_handleTransitionCallback stateKey, stateOptions, args, historyHasUpdated = true
+        @_handleTransitionCallback stateKey, stateOptions, params, {}, historyHasUpdated = true
 
       onloadUrl = null
       return
 
-    _handleLoadCallback: (stateKey, stateOptions, args) ->
+    _handleLoadCallback: (stateKey, stateOptions, params) ->
       currentManager = @
 
       if stateOptions.loadMethod
         @trigger 'load'
-        @trigger 'load:'+stateKey, args
+        @trigger 'load:'+stateKey, params
 
-        @[stateOptions.loadMethod].apply this, args
+        @[stateOptions.loadMethod].apply this, params
       return
 
     # Reached in two ways:
     #  1) Callback from router route handle
-    #    a) args is an array from the route callback
+    #    a) params is an array from the route callback
     #  2) bb-state change callback
-    #    a) args is what the user has provided declaratively, or it's parsed from the link url
+    #    a) params is what the user has provided declaratively, or it's parsed from the link url
     #
-    # Anytime args is an array, its last value will be always assumed to be queryParams string
-    _handleTransitionCallback: (stateKey, stateOptions, args, historyHasUpdated = false) ->
+    # Anytime params is an array, its last value will be always assumed to be queryParams string
+    _handleTransitionCallback: (stateKey, stateOptions, params, transitionOptions = {}, historyHasUpdated = false) ->
+      transitionOptions.navigate ?= true
+
       if currentManager and currentManager isnt @
         currentManager.trigger 'exit'
       currentManager = @
@@ -120,41 +122,41 @@
       @trigger 'transition:'+stateKey
 
       if stateOptions.url
-        # args is an array when:
+        # params is an array when:
         #   1) It comes from a route callback
         #   2) Is passed as array in bb-route directive
         #   3) Is interpolated from a link with a url defined
-        if args instanceof Array
+        if params instanceof Array
 
-          argsObject = _.object stateOptions._urlParams, args
+          paramsObject = _.object stateOptions._urlParams, params
 
           # Perform the opposite of routes hash and fill in url parameters with data
-          url = stateOptions._urlAsTemplate argsObject
+          url = stateOptions._urlAsTemplate paramsObject
 
-          unless historyHasUpdated
+          if not historyHasUpdated and transitionOptions.navigate
             @router.navigate url
 
-          data = _.map _.initial(args), String # Drop the last value, representing the queryParams
-          data.push _.last(args)               # and now re-add, avoids casting queryParam null to string
+          data = _.map _.initial(params), String # Drop the last value, representing the queryParams
+          data.push _.last(params)               # and now re-add, avoids casting queryParam null to string
 
-        else if args instanceof Object # args is allowed to be an object for bb-state directives
+        else if params instanceof Object # params is allowed to be an object for bb-state directives
 
           # Perform the opposite of routes hash and fill in url parameters with data
-          url = stateOptions._urlAsTemplate args
+          url = stateOptions._urlAsTemplate params
 
-          unless historyHasUpdated
+          if not historyHasUpdated and transitionOptions.navigate
             @router.navigate url
 
           data = @router._extractParameters stateOptions._urlAsRegex, url # Use router to guarantee param order
         else
-          throw new Error 'Args are only supported as an object or array if state.url is defined'
+          throw new Error 'Params are only supported as an object or array if state.url is defined'
 
         options =
           url: url
         data.push options
       else
         # non-url driven states mean we pass data right through
-        data = args
+        data = params
 
       @[stateOptions.transitionMethod].apply this, data
       return
@@ -173,7 +175,7 @@
 
         return {
           state: stateKey
-          args: data
+          params: data
         }
 
       return
@@ -181,13 +183,13 @@
     # for test stubs
     _getWindowHref: -> window?.location.href
 
-    @go: (state, args) ->
-      unless args
-        args = []
-      managerQueue.trigger state, args
+    @go: (state, params, transitionOptions) ->
+      unless params
+        params = []
+      managerQueue.trigger state, params, transitionOptions
 
     # a simple string w/o '/' will be treated as relative, just like anchor hrefs
-    @goByUrl: (url) ->
+    @goByUrl: (url, transitionOptions) ->
       urlParser = document.createElement 'a'
       urlParser.href = url
       path = urlParser.pathname.replace(/^\//, '')+urlParser.search
@@ -197,12 +199,12 @@
 
       if parsedUrl
         state = parsedUrl.state
-        args = parsedUrl.args
+        params = parsedUrl.params
       else
         state = '*'
-        args = [path]
+        params = [path]
 
-      Manager.go state, args
+      Manager.go state, params, transitionOptions
 
     @extend: Backbone.Model.extend # can't access Backbone's closure-scoped `extend` directly
 
@@ -222,15 +224,15 @@
         # parse the passed info
         stateInfo = stateAttr.split('(', 2)
         state = stateInfo[0]
-        args = []
+        params = []
 
         if stateInfo.length > 1 and stateInfo[1].length > 2 # basically if there's anything in the ()'s
-          args = JSON.parse(stateInfo[1].slice 0, stateInfo[1].indexOf(')'))
+          params = JSON.parse(stateInfo[1].slice 0, stateInfo[1].indexOf(')'))
 
-        if args instanceof Array
-          args.push null # this represents the query params value to the callback, which routers always append now
+        if params instanceof Array
+          params.push null # this represents the query params value to the callback, which routers always append now
 
-      managerQueue.trigger state, args
+      managerQueue.trigger state, params
     return
 
   $(window.document).on 'click', 'a[data-bb-state]', (event) -> _watchForStateChange event
