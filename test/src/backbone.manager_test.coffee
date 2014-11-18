@@ -527,6 +527,18 @@ describe 'Backbone.Manager Closure Scope', ->
 
         expect(goByUrlStub).to.have.been.calledWith 'http://a.com/a/1/b/2'
 
+      it 'should pass transitionOptons to go', ->
+        @mockEvent =
+          preventDefault: ->
+          isDefaultPrevented: -> false
+          currentTarget: $("<a data-bb-state href='http://a.com/a/1/b/2' data-bb-options='{\"navigate\": false}'/>")[0]
+
+        goByUrlStub = @sinon.stub Backbone.Manager, 'goByUrl'
+
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+
+        expect(goByUrlStub).to.have.been.calledWith 'http://a.com/a/1/b/2', {navigate: false}
+
     context 'bb-state has value', ->
       it 'must add null to end of params for callback', ->
         @mockEvent =
@@ -564,3 +576,14 @@ describe 'Backbone.Manager Closure Scope', ->
 
         expect(triggerStub).to.have.been.calledWith 'a.b', [null]
 
+      it 'should pass transitionOptons to go', ->
+        @mockEvent =
+          preventDefault: ->
+          isDefaultPrevented: -> false
+          currentTarget: $("<a data-bb-state='a.b()' data-bb-options='{\"navigate\": false}'/>")[0]
+
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager._testAccessor._watchForStateChange @mockEvent
+
+        expect(triggerStub).to.have.been.calledWith 'a.b', [null], {navigate: false}

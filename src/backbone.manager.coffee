@@ -214,11 +214,13 @@
 
   _watchForStateChange = (event) ->
     unless event.isDefaultPrevented()
-      stateAttr = $(event.currentTarget).attr('data-bb-state')
+      $target = $ event.currentTarget
+      stateAttr = $target.attr 'data-bb-state'
+      transitionOptions = $target.attr('data-bb-options') || '{}'
       event.preventDefault()
 
       if stateAttr is ''
-        Manager.goByUrl event.currentTarget.href
+        Manager.goByUrl event.currentTarget.href, JSON.parse(transitionOptions)
       else
 
         # parse the passed info
@@ -232,7 +234,7 @@
         if params instanceof Array
           params.push null # this represents the query params value to the callback, which routers always append now
 
-      managerQueue.trigger state, params
+      managerQueue.trigger state, params, JSON.parse(transitionOptions)
     return
 
   $(window.document).on 'click', 'a[data-bb-state]', (event) -> _watchForStateChange event
