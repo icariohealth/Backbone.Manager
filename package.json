@@ -1,6 +1,6 @@
 {
   "name": "Backbone.Manager",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "State-Based Routing/Control Manager for Backbone",
   "homepage": "https://github.com/novu/backbone.manager",
   "bugs": "https://github.com/novu/backbone.manager/issues",

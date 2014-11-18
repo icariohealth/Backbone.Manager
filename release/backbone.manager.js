@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v1.0
+ * @version v1.0.0
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
