@@ -116,7 +116,7 @@ callback: (id, searchString) ->
 ```
 ---
 ### `transitionMethod`
-Callback used when any non-loadMethod related state change occurs.
+Callback used when any non-loadMethod related state change occurs. Functionality can be affected by passing [transitionOptions](#transitionoptions).
 #### When `url` Is Defined
 ```coffee
 states:
@@ -150,6 +150,13 @@ trigger | callback method
 `Backbone.Manager.go('users.detail.books.detail',{b:2,a:1})`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
 `<a data-bb-state="users.detail.books.detail([1,2])">` | `callback(1,2)`
 `<a data-bb-state="users.detail.books.detail({b:2,a:1})">`<br>(args order **important**) | `callback(2,1)`<br>**values taken in order**
+
+#### transitionOptions
+Functionality of how the transition will occur can be controlled by passing in transitionOptions. These options can be passed directly using `go` or `goByUrl`, or also by setting [data-bb-options](#data-bb-options) on an anchor.
+
+name | description
+---- | -------------------------
+navigate | (boolean, default: *true*) If set to false, will not update the url when the transition is occurs, even if the url is provided for the state.
 
 ## The `'*'` State
 The `'*'` is reserved as a final matcher for states. When the `data-bb-state` watcher attempts to perform a state transition for a state that hasn't been defined, it will fallback to a `'*'` state definition. Here is an example of how to use it:
@@ -186,32 +193,35 @@ Triggered immediately upon load of the page, when the page url matches defined u
 Typically occurs when the user uses the back button. This will trigger the [transitionMethod](#transitionmethod) associated with the url.
 
 ---
-### `Backbone.Manager.go(stateName, args)`
+### `Backbone.Manager.go(stateName, args[, transitionOptions])`
 The programmatic way of triggering state changes.
 **Example Usage:**
 ```coffee
 events:
   'click dd': 'showUser'
 showUser: ->
-  Backbone.Manager.go('users.detail', {id:1})
+  Backbone.Manager.go('users.detail', {id:1}, {navigate: true})
 ```
 params:
 * stateName
 * args: [] or {}
   * see [transitionMethod](#transitionmethod) for details on what happens with the args
+* _(optional)_ transitionOptions (Object containing the options defined in [transitionOptions](#transitionoptions))
+
 
 ---
-### `Backbone.Manager.goByUrl(url)`
+### `Backbone.Manager.goByUrl(url [, transitionOptions])`
 The programmatic way of triggering state changes via url matching.
 **Example Usage:**
 ```coffee
 events:
   'click dd': 'showUser'
 showUser: ->
-  Backbone.Manager.goByUrl('/users/1')
+  Backbone.Manager.goByUrl('/users/1', {navigate: true})
 ```
 params:
 * url (tested against url matchers defined in states, will use * state if none are found)
+* _(optional)_ transitionOptions (Object containing the options defined in [transitionOptions](#transitionoptions))
 
 ---
 ### Click on `<a data-bb-state>`
@@ -227,6 +237,14 @@ The format for the `data-bb-state` value is `'statename([args]or{args})'`, where
 
 The first two examples are explicit state calls, but the third uses the url to infer the state (it actually calls `goByUrl`). The explicit triggers in the examples above will trigger the `users.detail.transitionMethod` callback. To use the inferred trigger, `data-bb-state` must be defined on the anchor and it must have an `href` url defined.
 
+#### `data-bb-options`
+You can add the `data-bb-options` attribute to your anchor to allow passing of the [transitionOptions](#transitionoptions)
+
+**Example Usage:**
+```html
+<a data-bb-state='users.detail([1])' data-bb-options='{"navigate": false}'/>
+```
+
 ## Additional Resources
 * [Slides (v0.1.5)](http://slides.com/johnathonsanders/backbone-manager)
 
@@ -236,6 +254,10 @@ The first two examples are explicit state calls, but the third uses the url to i
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+### 1.0
+* Add transitionOptions to `go` and `goByUrl`... supports `navigate` currently to allow pushState bypass
+* Support `data-bb-options` attribute to specify transitionOptions from anchor tags
+
 ### 0.2.4
 * Bugfix: `go` still requires args of some sort even if url contains no params
 * Bugfix: `go` breaks in ie8 if no arguments are provided

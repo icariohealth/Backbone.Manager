@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v0.2.4
+ * @version v1.0
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -58,36 +58,42 @@
               _this._routeCallbackChooser(stateKey, stateOptions, Array.apply(null, arguments));
             });
           }
-          return _this.listenTo(managerQueue, stateKey, function(args) {
-            _this._handleTransitionCallback(stateKey, stateOptions, args);
+          return _this.listenTo(managerQueue, stateKey, function(params, transitionOptions) {
+            _this._handleTransitionCallback(stateKey, stateOptions, params, transitionOptions);
           });
         };
       })(this));
     };
 
-    Manager.prototype._routeCallbackChooser = function(stateKey, stateOptions, args) {
+    Manager.prototype._routeCallbackChooser = function(stateKey, stateOptions, params) {
       var historyHasUpdated;
       if (onloadUrl && this._getWindowHref() === onloadUrl) {
-        this._handleLoadCallback(stateKey, stateOptions, args);
+        this._handleLoadCallback(stateKey, stateOptions, params);
       } else {
-        this._handleTransitionCallback(stateKey, stateOptions, args, historyHasUpdated = true);
+        this._handleTransitionCallback(stateKey, stateOptions, params, {}, historyHasUpdated = true);
       }
       onloadUrl = null;
     };
 
-    Manager.prototype._handleLoadCallback = function(stateKey, stateOptions, args) {
+    Manager.prototype._handleLoadCallback = function(stateKey, stateOptions, params) {
       currentManager = this;
       if (stateOptions.loadMethod) {
         this.trigger('load');
-        this.trigger('load:' + stateKey, args);
-        this[stateOptions.loadMethod].apply(this, args);
+        this.trigger('load:' + stateKey, params);
+        this[stateOptions.loadMethod].apply(this, params);
       }
     };
 
-    Manager.prototype._handleTransitionCallback = function(stateKey, stateOptions, args, historyHasUpdated) {
-      var argsObject, data, options, url;
+    Manager.prototype._handleTransitionCallback = function(stateKey, stateOptions, params, transitionOptions, historyHasUpdated) {
+      var data, options, paramsObject, url;
+      if (transitionOptions == null) {
+        transitionOptions = {};
+      }
       if (historyHasUpdated == null) {
         historyHasUpdated = false;
+      }
+      if (transitionOptions.navigate == null) {
+        transitionOptions.navigate = true;
       }
       if (currentManager && currentManager !== this) {
         currentManager.trigger('exit');
@@ -96,29 +102,29 @@
       this.trigger('transition');
       this.trigger('transition:' + stateKey);
       if (stateOptions.url) {
-        if (args instanceof Array) {
-          argsObject = _.object(stateOptions._urlParams, args);
-          url = stateOptions._urlAsTemplate(argsObject);
-          if (!historyHasUpdated) {
+        if (params instanceof Array) {
+          paramsObject = _.object(stateOptions._urlParams, params);
+          url = stateOptions._urlAsTemplate(paramsObject);
+          if (!historyHasUpdated && transitionOptions.navigate) {
             this.router.navigate(url);
           }
-          data = _.map(_.initial(args), String);
-          data.push(_.last(args));
-        } else if (args instanceof Object) {
-          url = stateOptions._urlAsTemplate(args);
-          if (!historyHasUpdated) {
+          data = _.map(_.initial(params), String);
+          data.push(_.last(params));
+        } else if (params instanceof Object) {
+          url = stateOptions._urlAsTemplate(params);
+          if (!historyHasUpdated && transitionOptions.navigate) {
             this.router.navigate(url);
           }
           data = this.router._extractParameters(stateOptions._urlAsRegex, url);
         } else {
-          throw new Error('Args are only supported as an object or array if state.url is defined');
+          throw new Error('Params are only supported as an object or array if state.url is defined');
         }
         options = {
           url: url
         };
         data.push(options);
       } else {
-        data = args;
+        data = params;
       }
       this[stateOptions.transitionMethod].apply(this, data);
     };
@@ -143,7 +149,7 @@
         data = this.router._extractParameters(this.states[stateKey]._urlAsRegex, url);
         return {
           state: stateKey,
-          args: data
+          params: data
         };
       }
     };
@@ -152,15 +158,15 @@
       return window != null ? window.location.href : void 0;
     };
 
-    Manager.go = function(state, args) {
-      if (!args) {
-        args = [];
+    Manager.go = function(state, params, transitionOptions) {
+      if (!params) {
+        params = [];
       }
-      return managerQueue.trigger(state, args);
+      return managerQueue.trigger(state, params, transitionOptions);
     };
 
-    Manager.goByUrl = function(url) {
-      var args, parsedUrl, path, state, urlParser;
+    Manager.goByUrl = function(url, transitionOptions) {
+      var params, parsedUrl, path, state, urlParser;
       urlParser = document.createElement('a');
       urlParser.href = url;
       path = urlParser.pathname.replace(/^\//, '') + urlParser.search;
@@ -170,12 +176,12 @@
       });
       if (parsedUrl) {
         state = parsedUrl.state;
-        args = parsedUrl.args;
+        params = parsedUrl.params;
       } else {
         state = '*';
-        args = [path];
+        params = [path];
       }
-      return Manager.go(state, args);
+      return Manager.go(state, params, transitionOptions);
     };
 
     Manager.extend = Backbone.Model.extend;
@@ -187,24 +193,26 @@
   })();
   Backbone.Manager = Manager;
   _watchForStateChange = function(event) {
-    var args, state, stateAttr, stateInfo;
+    var $target, params, state, stateAttr, stateInfo, transitionOptions;
     if (!event.isDefaultPrevented()) {
-      stateAttr = $(event.currentTarget).attr('data-bb-state');
+      $target = $(event.currentTarget);
+      stateAttr = $target.attr('data-bb-state');
+      transitionOptions = $target.attr('data-bb-options') || '{}';
       event.preventDefault();
       if (stateAttr === '') {
-        Manager.goByUrl(event.currentTarget.href);
+        Manager.goByUrl(event.currentTarget.href, JSON.parse(transitionOptions));
       } else {
         stateInfo = stateAttr.split('(', 2);
         state = stateInfo[0];
-        args = [];
+        params = [];
         if (stateInfo.length > 1 && stateInfo[1].length > 2) {
-          args = JSON.parse(stateInfo[1].slice(0, stateInfo[1].indexOf(')')));
+          params = JSON.parse(stateInfo[1].slice(0, stateInfo[1].indexOf(')')));
         }
-        if (args instanceof Array) {
-          args.push(null);
+        if (params instanceof Array) {
+          params.push(null);
         }
       }
-      managerQueue.trigger(state, args);
+      managerQueue.trigger(state, params, JSON.parse(transitionOptions));
     }
   };
   $(window.document).on('click', 'a[data-bb-state]', function(event) {
