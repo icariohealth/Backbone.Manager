@@ -154,6 +154,8 @@ trigger | callback method
 #### transitionOptions
 Functionality of how the transition will occur can be controlled by passing in transitionOptions. These options can be passed directly using `go` or `goByUrl`, or also by setting [data-bb-options](#data-bb-options) on an anchor.
 
+**Currently supported options:**
+
 name | description
 ---- | -------------------------
 navigate | (boolean, default: *true*) If set to false, will not update the url when the transition is occurs, even if the url is provided for the state.
@@ -238,7 +240,7 @@ The format for the `data-bb-state` value is `'statename([args]or{args})'`, where
 The first two examples are explicit state calls, but the third uses the url to infer the state (it actually calls `goByUrl`). The explicit triggers in the examples above will trigger the `users.detail.transitionMethod` callback. To use the inferred trigger, `data-bb-state` must be defined on the anchor and it must have an `href` url defined.
 
 #### `data-bb-options`
-You can add the `data-bb-options` attribute to your anchor to allow passing of the [transitionOptions](#transitionoptions)
+You can add the `data-bb-options` attribute to your anchor to allow passing of the [transitionOptions](#transitionoptions) in the form of valid JSON.
 
 **Example Usage:**
 ```html
@@ -255,7 +257,7 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 
 ## Change Log
 ### 1.0
-* Add transitionOptions to `go` and `goByUrl`... supports `navigate` currently to allow pushState bypass
+* Add [transitionOptions](#transitionoptions) to `go` and `goByUrl`... supports `navigate` currently to allow pushState bypass
 * Support `data-bb-options` attribute to specify transitionOptions from anchor tags
 
 ### 0.2.4
