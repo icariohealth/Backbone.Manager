@@ -12,15 +12,17 @@ var stripCode = require('gulp-strip-code');
 var uglify = require('gulp-uglify');
 
 var paths = {
-  scripts: ['./src/*.coffee','./test/src/*.coffee']
+  coffees: ['./src/*.coffee','./test/src/*.coffee'],
+  javascripts:['./out/*.js','./out/*.js']
 };
 
 /* TEST */
 
-gulp.task('mocha', ['coffee'], function () {
+gulp.task('mocha', function () {
   return gulp.src('./test/testRunner.js', {read: false})
     .pipe(mocha({
-      ignoreLeaks: true
+      ignoreLeaks: true,
+      reporter: 'nyan'
     }));
 });
 
@@ -41,19 +43,23 @@ gulp.task('mocha-istanbul',['coffee'], function(cb){
     });
 });
 
+gulp.task('automocha', ['watchCoffees'], function () {
+  gulp.watch(paths.javascripts, ['mocha']);
+});
+
 /* DEVELOP */
 
 gulp.task('coffee', function(){
-  return gulp.src(paths.scripts)
+  return gulp.src(paths.coffees)
     .pipe(sourcemaps.init())
       .pipe(coffee({bare: true}).on('error', gutil.log))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('./out'));
 });
 
-// Rerun the task when a file changes
-gulp.task('watch', ['coffee'], function() {
-  gulp.watch(paths.scripts, ['coffee']);
+// Rerun the coffee task when a coffee file changes
+gulp.task('watchCoffees', ['coffee'], function() {
+  gulp.watch(paths.coffees, ['coffee']);
 });
 
 /* RELEASE */
@@ -94,6 +100,6 @@ gulp.task('release-js-min', ['release-js'], function(){
     .pipe(gulp.dest('./release'));
 });
 
-gulp.task('default', ['watch']);
+gulp.task('default', ['watchCoffees']);
 gulp.task('release', ['release-js-min']);
 gulp.task('test', ['mocha-istanbul']);
