@@ -366,6 +366,15 @@ describe 'Backbone.Manager.prototype', ->
 
           expect(navigateStub).to.have.been.called
 
+        it 'should include query params with navigate call', ->
+          manager = new @managerProto @router
+
+          navigateStub = @sinon.stub @router, 'navigate'
+
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, 'a=b&c=d']
+
+          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?a=b&c=d'
+
         it 'should not fire navigate if historyHasUpdated', ->
           manager = new @managerProto @router
 
@@ -527,7 +536,7 @@ describe 'Backbone.Manager Closure Scope', ->
 
         expect(goByUrlStub).to.have.been.calledWith 'http://a.com/a/1/b/2'
 
-      it 'should pass transitionOptons to go', ->
+      it 'should pass transitionOptions to go', ->
         @mockEvent =
           preventDefault: ->
           isDefaultPrevented: -> false

@@ -4,6 +4,7 @@
   onloadUrl = window.location.href
 
   cachedParamMatcher = /[:*]([^(:)/]+)/g
+  cachedOptionalMatcher = /\(.*\)/g
 
   currentManager = null
 
@@ -66,7 +67,7 @@
 
           stateOptions._urlParams = while matches = cachedParamMatcher.exec(stateOptions.url)
             matches[1]
-          templateUrl = stateOptions.url.replace(/\(.*\)/g,'') # drop all '()'s for the urlAsTemplate
+          templateUrl = stateOptions.url.replace cachedOptionalMatcher, '' # drop all '()'s for the urlAsTemplate
           stateOptions._urlAsTemplate = _.template templateUrl, null, {interpolate: cachedParamMatcher}
           stateOptions._urlAsRegex = @router._routeToRegExp stateOptions.url
 
@@ -122,6 +123,7 @@
       @trigger 'transition:'+stateKey
 
       if stateOptions.url
+
         # params is an array when:
         #   1) It comes from a route callback
         #   2) Is passed as array in bb-route directive
@@ -130,14 +132,18 @@
 
           paramsObject = _.object stateOptions._urlParams, params
 
+          queryParams = _.last params
+
           # Perform the opposite of routes hash and fill in url parameters with data
           url = stateOptions._urlAsTemplate paramsObject
+          if queryParams
+            url += '?'+queryParams
 
           if not historyHasUpdated and transitionOptions.navigate
             @router.navigate url
 
           data = _.map _.initial(params), String # Drop the last value, representing the queryParams
-          data.push _.last(params)               # and now re-add, avoids casting queryParam null to string
+          data.push queryParams                  # and now re-add, avoids casting queryParam null to string
 
         else if params instanceof Object # params is allowed to be an object for bb-state directives
 
@@ -148,6 +154,7 @@
             @router.navigate url
 
           data = @router._extractParameters stateOptions._urlAsRegex, url # Use router to guarantee param order
+
         else
           throw new Error 'Params are only supported as an object or array if state.url is defined'
 
