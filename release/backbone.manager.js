@@ -1,16 +1,17 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v1.0.0
+ * @version v1.0.1
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
  */
 (function(Backbone, _, $, window) {
-  var Manager, cachedParamMatcher, currentManager, managerQueue, managers, onloadUrl, _watchForStateChange;
+  var Manager, cachedOptionalMatcher, cachedParamMatcher, currentManager, managerQueue, managers, onloadUrl, _watchForStateChange;
   managers = [];
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
   cachedParamMatcher = /[:*]([^(:)/]+)/g;
+  cachedOptionalMatcher = /\(.*\)/g;
   currentManager = null;
   Manager = (function() {
     Manager.prototype.states = {};
@@ -49,7 +50,7 @@
               }
               return _results;
             })();
-            templateUrl = stateOptions.url.replace(/\(.*\)/g, '');
+            templateUrl = stateOptions.url.replace(cachedOptionalMatcher, '');
             stateOptions._urlAsTemplate = _.template(templateUrl, null, {
               interpolate: cachedParamMatcher
             });
@@ -85,7 +86,7 @@
     };
 
     Manager.prototype._handleTransitionCallback = function(stateKey, stateOptions, params, transitionOptions, historyHasUpdated) {
-      var data, options, paramsObject, url;
+      var data, options, paramsObject, queryParams, url;
       if (transitionOptions == null) {
         transitionOptions = {};
       }
@@ -104,12 +105,16 @@
       if (stateOptions.url) {
         if (params instanceof Array) {
           paramsObject = _.object(stateOptions._urlParams, params);
+          queryParams = _.last(params);
           url = stateOptions._urlAsTemplate(paramsObject);
+          if (queryParams) {
+            url += '?' + queryParams;
+          }
           if (!historyHasUpdated && transitionOptions.navigate) {
             this.router.navigate(url);
           }
           data = _.map(_.initial(params), String);
-          data.push(_.last(params));
+          data.push(queryParams);
         } else if (params instanceof Object) {
           url = stateOptions._urlAsTemplate(params);
           if (!historyHasUpdated && transitionOptions.navigate) {

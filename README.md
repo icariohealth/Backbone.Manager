@@ -256,6 +256,9 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+### 1.0.1
+* Bugfix: queryParams are getting dropped when transition navigate occurs
+
 ### 1.0
 * Add [transitionOptions](#transitionoptions) to `go` and `goByUrl`... supports `navigate` currently to allow pushState bypass
 * Support `data-bb-options` attribute to specify transitionOptions from anchor tags
