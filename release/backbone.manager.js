@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v1.0.1
+ * @version v1.0.2
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -10,7 +10,7 @@
   managers = [];
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
-  cachedParamMatcher = /[:*]([^(:)/]+)/g;
+  cachedParamMatcher = /[:*]([^(:?)/]+)/g;
   cachedOptionalMatcher = /\(.*\)/g;
   currentManager = null;
   Manager = (function() {
@@ -108,7 +108,12 @@
           queryParams = _.last(params);
           url = stateOptions._urlAsTemplate(paramsObject);
           if (queryParams) {
-            url += '?' + queryParams;
+            if (url.indexOf('?') > -1) {
+              url += '&';
+            } else {
+              url += '?';
+            }
+            url += queryParams;
           }
           if (!historyHasUpdated && transitionOptions.navigate) {
             this.router.navigate(url);
