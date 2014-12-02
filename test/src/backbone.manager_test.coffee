@@ -191,6 +191,19 @@ describe 'Backbone.Manager.prototype', ->
 
         expect(manager.states.test._urlAsTemplate(obj)).to.equal 'a/1/b/2'
 
+      it 'should build a url template including query params', ->
+        manager = new (Backbone.Manager.extend
+          states:
+            test:
+              transitionMethod: 'a'
+              url: 'a/:a_id/b/:b_id?a=b'
+        )(@router)
+
+        obj =
+          a_id: 1
+          b_id: 2
+        expect(manager.states.test._urlAsTemplate(obj)).to.equal 'a/1/b/2?a=b'
+
       it 'should remove optional surrounds for url template', ->
         manager = new (Backbone.Manager.extend
           states:
@@ -343,7 +356,7 @@ describe 'Backbone.Manager.prototype', ->
         @managerProto = Backbone.Manager.extend
           states:
             test:
-              url: 'a/:id_1/b/:id_2/c/:id_3/d/:id_4'
+              url: 'a/:id_1/b/:id_2/c/:id_3/d/:id_4?f=g'
               transitionMethod: 'test'
           test: ->
 
@@ -355,7 +368,7 @@ describe 'Backbone.Manager.prototype', ->
 
           manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, null]
 
-          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4'
+          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g'
 
         it 'should call navigate', ->
           manager = new @managerProto @router
@@ -366,8 +379,24 @@ describe 'Backbone.Manager.prototype', ->
 
           expect(navigateStub).to.have.been.called
 
-        it 'should include query params with navigate call', ->
+        it 'should append query params with navigate call', ->
           manager = new @managerProto @router
+
+          navigateStub = @sinon.stub @router, 'navigate'
+
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, 'a=b&c=d']
+
+          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g&a=b&c=d'
+
+        it 'should create query params with navigate call', ->
+          SimpleManagerProto = Backbone.Manager.extend
+            states:
+              test:
+                url: 'a/:id_1/b/:id_2/c/:id_3/d/:id_4'
+                transitionMethod: 'test'
+            test: ->
+
+          manager = new SimpleManagerProto @router
 
           navigateStub = @sinon.stub @router, 'navigate'
 
@@ -426,7 +455,7 @@ describe 'Backbone.Manager.prototype', ->
 
           manager._handleTransitionCallback 'test', manager.states.test, @paramsObj
 
-          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4'
+          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g'
 
         it 'should call navigate', ->
           manager = new @managerProto @router

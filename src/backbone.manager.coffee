@@ -3,7 +3,7 @@
   managerQueue = _.extend {}, Backbone.Events
   onloadUrl = window.location.href
 
-  cachedParamMatcher = /[:*]([^(:)/]+)/g
+  cachedParamMatcher = /[:*]([^(:?)/]+)/g
   cachedOptionalMatcher = /\(.*\)/g
 
   currentManager = null
@@ -137,7 +137,8 @@
           # Perform the opposite of routes hash and fill in url parameters with data
           url = stateOptions._urlAsTemplate paramsObject
           if queryParams
-            url += '?'+queryParams
+            if url.indexOf('?') > -1 then url+= '&' else url+= '?'
+            url += queryParams
 
           if not historyHasUpdated and transitionOptions.navigate
             @router.navigate url
