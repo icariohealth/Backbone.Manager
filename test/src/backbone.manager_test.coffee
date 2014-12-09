@@ -528,6 +528,21 @@ describe 'Backbone.Manager.prototype', ->
 
       manager._parseStateFromUrl 'a/1/b/2?c=d'
 
+    it 'should parse through urls in reverse order to mimic backbone router order', ->
+      manager = new (Backbone.Manager.extend
+        states:
+          test1:
+            url: 'a'
+            transitionMethod: 'a'
+          test2:
+            url: 'a'
+            transitionMethod: 'a'
+      )(@router)
+
+      parsedObject = manager._parseStateFromUrl('a')
+
+      expect(parsedObject.state).to.eq 'test2'
+
     it 'should return object when match found', ->
       parsedObject = @manager._parseStateFromUrl 'a/1/b/2?c=d'
 
