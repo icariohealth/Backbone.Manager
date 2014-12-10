@@ -31,6 +31,7 @@ gulp.task('mocha', function () {
 gulp.task('mocha-istanbul',['coffee'], function(cb){
   gulp.src(['./out/backbone.manager.js'])
     .pipe(istanbul()) // Covering files
+    .pipe(istanbul.hookRequire()) // Force `require` to return covered files
     .on('finish', function () {
       gulp.src(['./test/testRunner.js'])
         .pipe(mocha({
