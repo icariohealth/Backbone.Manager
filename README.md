@@ -256,7 +256,7 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
-### 1.0.3
+### 1.0.4
 * Bugfix: Transition is matching urls in a different priority than load
 
 ### 1.0.2

@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v1.0.2
+ * @version v1.0.4
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -149,7 +149,7 @@
 
     Manager.prototype._parseStateFromUrl = function(url) {
       var data, stateKey;
-      stateKey = _.find(_.keys(this.states), (function(_this) {
+      stateKey = _.find(_.keys(this.states).reverse(), (function(_this) {
         return function(stateKey) {
           var _ref;
           return (_ref = _this.states[stateKey]._urlAsRegex) != null ? _ref.test(url) : void 0;
