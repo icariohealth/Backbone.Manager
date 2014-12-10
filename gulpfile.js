@@ -1,3 +1,4 @@
+var bump = require('gulp-bump');
 var coffee = require('gulp-coffee');
 var coveralls = require('gulp-coveralls');
 var gulp = require('gulp');
@@ -7,6 +8,7 @@ var istanbul = require('gulp-istanbul');
 var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
 var rimraf = require('gulp-rimraf');
+var runSequence = require('run-sequence');
 var sourcemaps = require('gulp-sourcemaps');
 var stripCode = require('gulp-strip-code');
 var uglify = require('gulp-uglify');
@@ -63,6 +65,23 @@ gulp.task('watchCoffees', ['coffee'], function() {
 });
 
 /* RELEASE */
+gulp.task('bump-patch', function(){
+  return gulp.src(['./bower.json', './package.json'])
+    .pipe(bump())
+    .pipe(gulp.dest('./'));
+});
+
+gulp.task('bump-minor', function(){
+  return gulp.src(['./bower.json', './package.json'])
+    .pipe(bump({type:'minor'}))
+    .pipe(gulp.dest('./'));
+});
+
+gulp.task('bump-major', function(){
+  return gulp.src(['./bower.json', './package.json'])
+    .pipe(bump({type:'major'}))
+    .pipe(gulp.dest('./'));
+});
 
 gulp.task('wipe-release-dir', function() {
   return gulp.src('./release/*', { read: false })
@@ -92,7 +111,7 @@ gulp.task('release-js', ['wipe-release-dir'], function(){
 });
 
 gulp.task('release-js-min', ['release-js'], function(){
-  gulp.src(['./release/*.js','!./release/*-min.js'])
+  return gulp.src(['./release/*.js','!./release/*-min.js'])
     .pipe(sourcemaps.init())
       .pipe(uglify())
       .pipe(rename({suffix: '-min'}))
@@ -100,6 +119,18 @@ gulp.task('release-js-min', ['release-js'], function(){
     .pipe(gulp.dest('./release'));
 });
 
+gulp.task('release-patch', function(cb){
+  runSequence('bump-patch', 'release-js-min', cb);
+});
+
+gulp.task('release-minor', function(cb){
+  runSequence('bump-minor', 'release-js-min', cb);
+});
+
+gulp.task('release-major', function(cb){
+  runSequence('bump-major', 'release-js-min', cb);
+});
+
 gulp.task('default', ['watchCoffees']);
-gulp.task('release', ['release-js-min']);
+gulp.task('release', ['release-patch']);
 gulp.task('test', ['mocha-istanbul']);
