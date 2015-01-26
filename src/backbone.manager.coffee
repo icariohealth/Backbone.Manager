@@ -99,10 +99,16 @@
       currentManager = @
 
       if stateOptions.loadMethod
-        @trigger 'load'
-        @trigger 'load:'+stateKey, params
+        @trigger 'loadStart'
+        @trigger 'loadStart:'+stateKey, params
 
-        @[stateOptions.loadMethod].apply this, params
+        try
+          @[stateOptions.loadMethod].apply this, params
+          @trigger 'loadSuccess'
+          @trigger 'loadSuccess:'+stateKey, params
+        catch error
+          @trigger 'loadError', error
+          @trigger 'loadError:'+stateKey, params, error
       return
 
     # Reached in two ways:
@@ -119,8 +125,8 @@
         currentManager.trigger 'exit'
       currentManager = @
 
-      @trigger 'transition'
-      @trigger 'transition:'+stateKey
+      @trigger 'transitionStart'
+      @trigger 'transitionStart:'+stateKey
 
       if stateOptions.url
 
@@ -166,7 +172,14 @@
         # non-url driven states mean we pass data right through
         data = params
 
-      @[stateOptions.transitionMethod].apply this, data
+      try
+        @[stateOptions.transitionMethod].apply this, data
+        @trigger 'transitionSuccess'
+        @trigger 'transitionSuccess:'+stateKey
+      catch error
+        @trigger 'transitionError', error
+        @trigger 'transitionError:'+stateKey, error
+
       return
 
     _parseEvents: ->
