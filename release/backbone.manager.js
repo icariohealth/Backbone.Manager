@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v1.0.4
+ * @version v2.0.0
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -77,16 +77,25 @@
     };
 
     Manager.prototype._handleLoadCallback = function(stateKey, stateOptions, params) {
+      var error;
       currentManager = this;
       if (stateOptions.loadMethod) {
-        this.trigger('load');
-        this.trigger('load:' + stateKey, params);
-        this[stateOptions.loadMethod].apply(this, params);
+        this.trigger('loadStart');
+        this.trigger('loadStart:' + stateKey, params);
+        try {
+          this[stateOptions.loadMethod].apply(this, params);
+          this.trigger('loadSuccess');
+          this.trigger('loadSuccess:' + stateKey, params);
+        } catch (_error) {
+          error = _error;
+          this.trigger('loadError', error);
+          this.trigger('loadError:' + stateKey, params, error);
+        }
       }
     };
 
     Manager.prototype._handleTransitionCallback = function(stateKey, stateOptions, params, transitionOptions, historyHasUpdated) {
-      var data, options, paramsObject, queryParams, url;
+      var data, error, options, paramsObject, queryParams, url;
       if (transitionOptions == null) {
         transitionOptions = {};
       }
@@ -100,8 +109,8 @@
         currentManager.trigger('exit');
       }
       currentManager = this;
-      this.trigger('transition');
-      this.trigger('transition:' + stateKey);
+      this.trigger('transitionStart');
+      this.trigger('transitionStart:' + stateKey);
       if (stateOptions.url) {
         if (params instanceof Array) {
           paramsObject = _.object(stateOptions._urlParams, params);
@@ -136,7 +145,15 @@
       } else {
         data = params;
       }
-      this[stateOptions.transitionMethod].apply(this, data);
+      try {
+        this[stateOptions.transitionMethod].apply(this, data);
+        this.trigger('transitionSuccess');
+        this.trigger('transitionSuccess:' + stateKey);
+      } catch (_error) {
+        error = _error;
+        this.trigger('transitionError', error);
+        this.trigger('transitionError:' + stateKey, error);
+      }
     };
 
     Manager.prototype._parseEvents = function() {
