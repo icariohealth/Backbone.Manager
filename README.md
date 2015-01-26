@@ -179,10 +179,18 @@ Backbone.Manager will trigger state specific and general events as the transitio
 
 event | description
 ----- | -----------
-load | incoming page load call for any state
-load:\[state] (args) | incoming page load call for the [state]<br>(args) are the url params provided by the router
-transition | incoming transition call for any state
-transition:[state] | incoming transition call for the [state]
+loadStart | incoming page load call for any state
+loadStart:\[state] (args) | incoming page load call for the [state]<br>(args) are the url params provided by the router
+loadSuccess | loadMethod callback completed
+loadSuccess:\[state] (args) | loadMethod callback completed for the [state]<br>(args) are the url params provided by the router
+loadError (error) | loadMethod callback failed
+loadError:\[state] (args, error) | loadMethod callback failed for the [state]<br>(args) are the url params provided by the router<br>(error) is the thrown error
+transitionStart | incoming transition call for any state
+transitionStart:[state] | incoming transition call for the [state]
+transitionSuccess | transitionMethod callback completed
+transitionSuccess:\[state] | transitionMethod callback completed for the [state]
+transitionError (error) | transitionMethod callback failed<br>(error) is the thrown error
+transitionError:\[state] (error) | transitionMethod callback failed for the [state]<br>(error) is the thrown error
 exit | state is transitioning out of the current Manager, into a different one
 
 ## Triggering State Change
@@ -256,6 +264,9 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+### 2.0.0
+* __Breaking:__ Add [transition/load] Success and Error events. Rename old bare events to [transition/load]Start
+
 ### 1.0.4
 * Bugfix: Transition is matching urls in a different priority than load
 
