@@ -207,6 +207,10 @@
     @go: (state, params, transitionOptions) ->
       unless params
         params = []
+
+      if params instanceof Array
+        params.push null # this represents the query params value to the callback, which routers always append now
+
       managerQueue.trigger state, params, transitionOptions
 
     # a simple string w/o '/' will be treated as relative, just like anchor hrefs

@@ -18,21 +18,29 @@ describe 'Backbone.Manager', ->
 
       Backbone.Manager.go 'test'
 
-      expect(triggerStub).to.have.been.calledWith 'test', []
+      expect(triggerStub).to.have.been.calledWith sinon.match.string, sinon.match.array
 
-    it 'should call the managerQueue with state change request', ->
+    context 'params is an array', ->
+      it 'should append a null to the params', ->
+        triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
+
+        Backbone.Manager.go 'test', [1]
+
+        expect(triggerStub).to.have.been.calledWith sinon.match.string, [1, null]
+
+    it 'should call the managerQueue with correct state', ->
       triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.go 'test', [1,2]
 
-      expect(triggerStub).to.have.been.calledWith 'test', [1,2]
+      expect(triggerStub).to.have.been.calledWith 'test'
 
     it 'should pass the transitionOptions through', ->
       triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.go 'abc', [], {navigate: true}
 
-      expect(triggerStub).to.have.been.calledWith 'abc', [], {navigate: true}
+      expect(triggerStub).to.have.been.calledWith sinon.match.string, sinon.match.any, {navigate: true}
 
   describe 'goByUrl()', ->
     afterEach ->
