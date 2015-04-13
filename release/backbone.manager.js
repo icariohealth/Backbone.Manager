@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v2.0.0
+ * @version v2.0.1
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -188,6 +188,9 @@
     Manager.go = function(state, params, transitionOptions) {
       if (!params) {
         params = [];
+      }
+      if (params instanceof Array) {
+        params.push(null);
       }
       return managerQueue.trigger(state, params, transitionOptions);
     };

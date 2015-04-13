@@ -264,6 +264,10 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+
+### 2.0.1
+* Bugfix: When calling `go` with an array of params, an odd search string gets appended to the url
+
 ### 2.0.0
 * __Breaking:__ Add [transition/load] Success and Error events. Rename old bare events to [transition/load]Start
 
