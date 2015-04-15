@@ -5,6 +5,7 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var header = require('gulp-header');
 var istanbul = require('gulp-istanbul');
+var jsdom = require('jsdom'); // gulp mocha reloads everything except pre-instantiated reqs. This lets automocha work.
 var mocha = require('gulp-mocha');
 var rename = require('gulp-rename');
 var rimraf = require('gulp-rimraf');

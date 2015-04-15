@@ -1,16 +1,16 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v2.0.1
+ * @version v2.0.2
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
  */
 (function(Backbone, _, $, window) {
-  var Manager, cachedOptionalMatcher, cachedParamMatcher, currentManager, managerQueue, managers, onloadUrl, _watchForStateChange;
+  var Manager, _watchForStateChange, cachedOptionalMatcher, cachedParamMatcher, currentManager, managerQueue, managers, onloadUrl;
   managers = [];
   managerQueue = _.extend({}, Backbone.Events);
   onloadUrl = window.location.href;
-  cachedParamMatcher = /[:*]([^(:?)/]+)/g;
+  cachedParamMatcher = /[:*]([^(:?)\/]+)/g;
   cachedOptionalMatcher = /\(.*\)/g;
   currentManager = null;
   Manager = (function() {
@@ -43,12 +43,12 @@
               throw new Error(stateKey + ' is not allowed to have a RegExp url');
             }
             stateOptions._urlParams = (function() {
-              var _results;
-              _results = [];
+              var results;
+              results = [];
               while (matches = cachedParamMatcher.exec(stateOptions.url)) {
-                _results.push(matches[1]);
+                results.push(matches[1]);
               }
-              return _results;
+              return results;
             })();
             templateUrl = stateOptions.url.replace(cachedOptionalMatcher, '');
             stateOptions._urlAsTemplate = _.template(templateUrl, null, {
@@ -168,8 +168,8 @@
       var data, stateKey;
       stateKey = _.find(_.keys(this.states).reverse(), (function(_this) {
         return function(stateKey) {
-          var _ref;
-          return (_ref = _this.states[stateKey]._urlAsRegex) != null ? _ref.test(url) : void 0;
+          var ref;
+          return (ref = _this.states[stateKey]._urlAsRegex) != null ? ref.test(url) : void 0;
         };
       })(this));
       if (stateKey) {

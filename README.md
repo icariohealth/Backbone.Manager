@@ -265,6 +265,9 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 
 ## Change Log
 
+### 2.0.2
+* Catch up deps
+
 ### 2.0.1
 * Bugfix: When calling `go` with an array of params, an odd search string gets appended to the url
 
