@@ -229,7 +229,7 @@
         state = '*'
         params = [path]
 
-      Manager.go state, params, transitionOptions
+      managerQueue.trigger state, params, transitionOptions
 
     @extend: Backbone.Model.extend # can't access Backbone's closure-scoped `extend` directly
 

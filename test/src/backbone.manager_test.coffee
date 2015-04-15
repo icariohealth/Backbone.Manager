@@ -64,33 +64,33 @@ describe 'Backbone.Manager', ->
         params: ['1', '2', '']
       Backbone.Manager._testAccessor.managers.push manager
 
-      goStub = @sinon.stub Backbone.Manager, 'go'
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
 
-      expect(goStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2', '']
+      expect(triggerStub).to.have.been.calledWith 'a.detail.b.detail', ['1', '2', '']
 
     it 'should trigger the * state and pass the pathname if there are no matching states', ->
       manager = Object.create Backbone.Manager.prototype
       @sinon.stub(manager, '_parseStateFromUrl').returns undefined
       Backbone.Manager._testAccessor.managers.push manager
 
-      goStub = @sinon.stub Backbone.Manager, 'go'
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
 
-      expect(goStub).to.have.been.calledWith '*', ['a/1/b/2']
+      expect(triggerStub).to.have.been.calledWith '*', ['a/1/b/2']
 
     it 'should pass the transitionOptions through', ->
       manager = Object.create Backbone.Manager.prototype
       @sinon.stub(manager, '_parseStateFromUrl').returns undefined
       Backbone.Manager._testAccessor.managers.push manager
 
-      goStub = @sinon.stub Backbone.Manager, 'go'
+      triggerStub = @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2', {navigate: true}
 
-      expect(goStub).to.have.been.calledWith '*', ['a/1/b/2'], {navigate: true}
+      expect(triggerStub).to.have.been.calledWith '*', ['a/1/b/2'], {navigate: true}
 
     it 'should trigger the lastly created matching manager first', ->
       manager1 = Object.create Backbone.Manager.prototype
@@ -105,7 +105,7 @@ describe 'Backbone.Manager', ->
         params: ['1', '2', '']
       Backbone.Manager._testAccessor.managers.push manager2
 
-      @sinon.stub Backbone.Manager, 'go'
+      @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
 
@@ -123,7 +123,7 @@ describe 'Backbone.Manager', ->
       @sinon.stub(manager2, '_parseStateFromUrl').returns undefined
       Backbone.Manager._testAccessor.managers.push manager2
 
-      @sinon.stub Backbone.Manager, 'go'
+      @sinon.stub Backbone.Manager._testAccessor.managerQueue, 'trigger'
 
       Backbone.Manager.goByUrl 'http://a.com/a/1/b/2'
       expect(Backbone.Manager._testAccessor.managers[0].id).to.equal manager1.id
