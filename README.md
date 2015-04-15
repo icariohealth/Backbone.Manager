@@ -265,6 +265,9 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 
 ## Change Log
 
+### 2.0.3
+* Bugfix: `goByUrl` still uses `go` and gained a null in the params
+
 ### 2.0.2
 * Catch up deps
 
