@@ -489,6 +489,15 @@ describe 'Backbone.Manager.prototype', ->
 
           expect(navigateStub).to.have.been.called
 
+        it 'should trigger navigate', ->
+          manager = new @managerProto @router
+
+          triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'navigate'
+
+          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, null]
+
+          expect(triggerSpy).to.have.been.called
+
         it 'should append query params with navigate call', ->
           manager = new @managerProto @router
 
@@ -575,6 +584,15 @@ describe 'Backbone.Manager.prototype', ->
           manager._handleTransitionCallback 'test', manager.states.test, @paramsObj
 
           expect(navigateStub).to.have.been.called
+
+        it 'should trigger navigate', ->
+          manager = new @managerProto @router
+
+          triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'navigate'
+
+          manager._handleTransitionCallback 'test', manager.states.test, @paramsObj
+
+          expect(triggerSpy).to.have.been.called
 
         it 'should not call navigate if history has already updated', ->
           manager = new @managerProto @router

@@ -16,13 +16,6 @@
   #    - make call to method
   #    - appropriate post events (load/transition) are triggered, both generic and state specific
   #
-  #  Triggered Events:
-  #    load                - incoming page load call for any state
-  #    load:[state] (params) - incoming page load call for the [state]
-  #
-  #    transition          - incoming transition call for all states
-  #    transition:[state]  - incoming transition call for the [state]
-  #
   class Manager
     # state structure:
     # {
@@ -148,6 +141,7 @@
 
           if not historyHasUpdated and transitionOptions.navigate
             @router.navigate url
+            @trigger 'navigate'
 
           data = _.map _.initial(params), String # Drop the last value, representing the queryParams
           data.push queryParams                  # and now re-add, avoids casting queryParam null to string
@@ -159,6 +153,7 @@
 
           if not historyHasUpdated and transitionOptions.navigate
             @router.navigate url
+            @trigger 'navigate'
 
           data = @router._extractParameters stateOptions._urlAsRegex, url # Use router to guarantee param order
 
