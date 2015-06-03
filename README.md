@@ -192,6 +192,7 @@ transitionSuccess:\[state] | transitionMethod callback completed for the [state]
 transitionError (error) | transitionMethod callback failed<br>(error) is the thrown error
 transitionError:\[state] (error) | transitionMethod callback failed for the [state]<br>(error) is the thrown error
 exit | state is transitioning out of the current Manager, into a different one
+navigate | Router's navigate function has been triggered and the url has changed
 
 ## Triggering State Change
 There are four different ways to trigger a state change within Backbone.Manager:
@@ -264,6 +265,9 @@ You can add the `data-bb-options` attribute to your anchor to allow passing of t
 * Open `test/test-runner.html` to run the in-browser test suite, or run `npm test` for headless.
 
 ## Change Log
+
+### 2.0.4
+* Added new navigate event when a `router.navigate` is performed
 
 ### 2.0.3
 * Bugfix: `goByUrl` still uses `go` and gained a null in the params

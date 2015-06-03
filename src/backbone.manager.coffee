@@ -140,8 +140,9 @@
             url += queryParams
 
           if not historyHasUpdated and transitionOptions.navigate
-            @router.navigate url
-            @trigger 'navigate'
+            unless @_getWindowPath() is url
+              @router.navigate url
+              @trigger 'navigate'
 
           data = _.map _.initial(params), String # Drop the last value, representing the queryParams
           data.push queryParams                  # and now re-add, avoids casting queryParam null to string
@@ -152,8 +153,9 @@
           url = stateOptions._urlAsTemplate params
 
           if not historyHasUpdated and transitionOptions.navigate
-            @router.navigate url
-            @trigger 'navigate'
+            unless @_getWindowPath() is url
+              @router.navigate url
+              @trigger 'navigate'
 
           data = @router._extractParameters stateOptions._urlAsRegex, url # Use router to guarantee param order
 
@@ -198,6 +200,8 @@
 
     # for test stubs
     _getWindowHref: -> window?.location.href
+
+    _getWindowPath: -> window?.location.pathname.replace(/^\//, '') + window?.location.search
 
     @go: (state, params, transitionOptions) ->
       unless params

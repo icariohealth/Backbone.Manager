@@ -165,7 +165,7 @@ describe 'Backbone.Manager.prototype', ->
 
       expect(listenToStub).to.have.been.calledWith sinon.match.any, 'test', sinon.match.any
 
-    context 'state url defined', ->
+    context 'when state url defined', ->
       it 'should throw error if url is regex', ->
         manager = Backbone.Manager.extend
           states:
@@ -408,7 +408,7 @@ describe 'Backbone.Manager.prototype', ->
 
       expect(triggerSpy).to.have.been.calledBefore callbackSpy
 
-    context 'transition succeeded', ->
+    context 'when transition succeeded', ->
       it 'should trigger generic and specific transitionSuccess events in that order', ->
         manager = new (Backbone.Manager.extend
           test: ->
@@ -432,7 +432,7 @@ describe 'Backbone.Manager.prototype', ->
 
         expect(triggerSpy).to.have.been.calledAfter callbackSpy
 
-    context 'transition failed', ->
+    context 'when transition failed', ->
       beforeEach ->
         @manager = new (Backbone.Manager.extend
           test: -> throw new Error 'new error'
@@ -461,7 +461,7 @@ describe 'Backbone.Manager.prototype', ->
 
         expect(triggerSpy).to.have.been.calledAfter callbackSpy
 
-    context 'state url defined', ->
+    context 'when state url defined', ->
       before ->
         @managerProto = Backbone.Manager.extend
           states:
@@ -470,7 +470,7 @@ describe 'Backbone.Manager.prototype', ->
               transitionMethod: 'test'
           test: ->
 
-      context 'params is Array', ->
+      context 'when params is Array', ->
         it 'should maintain order from array into url', ->
           manager = new @managerProto @router
 
@@ -480,66 +480,84 @@ describe 'Backbone.Manager.prototype', ->
 
           expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g'
 
-        it 'should call navigate', ->
-          manager = new @managerProto @router
+        context 'when current url is different from state url', ->
+          beforeEach ->
+            @manager = new (@managerProto.extend
+              _getWindowPath: -> 'abc'
+            )(@router)
 
-          navigateStub = @sinon.stub @router, 'navigate'
+          it 'should call navigate', ->
+            navigateStub = @sinon.stub @router, 'navigate'
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, null]
+            @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4, null]
 
-          expect(navigateStub).to.have.been.called
+            expect(navigateStub).to.have.been.called
 
-        it 'should trigger navigate', ->
-          manager = new @managerProto @router
+          it 'should trigger navigate event', ->
+            triggerSpy = @sinon.spy(@manager, 'trigger').withArgs 'navigate'
 
-          triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'navigate'
+            @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4, null]
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, null]
+            expect(triggerSpy).to.have.been.called
 
-          expect(triggerSpy).to.have.been.called
+          it 'should append query params with navigate call', ->
+            navigateStub = @sinon.stub @router, 'navigate'
 
-        it 'should append query params with navigate call', ->
-          manager = new @managerProto @router
+            @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4, 'a=b&c=d']
 
-          navigateStub = @sinon.stub @router, 'navigate'
+            expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g&a=b&c=d'
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, 'a=b&c=d']
+          it 'should create query params with navigate call', ->
+            manager = new (Backbone.Manager.extend
+              states:
+                test:
+                  url: 'a/:id_1/b/:id_2/c/:id_3/d/:id_4'
+                  transitionMethod: 'test'
+              test: ->
+              _getWindowPath: -> 'abc'
+            )(@router)
 
-          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g&a=b&c=d'
+            navigateStub = @sinon.stub @router, 'navigate'
 
-        it 'should create query params with navigate call', ->
-          SimpleManagerProto = Backbone.Manager.extend
-            states:
-              test:
-                url: 'a/:id_1/b/:id_2/c/:id_3/d/:id_4'
-                transitionMethod: 'test'
-            test: ->
+            manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, 'a=b&c=d']
 
-          manager = new SimpleManagerProto @router
+            expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?a=b&c=d'
 
-          navigateStub = @sinon.stub @router, 'navigate'
+          context 'when historyHasUpdated', ->
+            it 'should not fire navigate', ->
+              navigateStub = @sinon.stub @router, 'navigate'
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4, 'a=b&c=d']
+              @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4,null], null, historyHasUpdated = true
 
-          expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?a=b&c=d'
+              expect(navigateStub).to.not.have.been.called
 
-        it 'should not fire navigate if historyHasUpdated', ->
-          manager = new @managerProto @router
+          context 'when transitionOptions.navigate is false', ->
+            it 'should not fire navigate', ->
+              navigateStub = @sinon.stub @router, 'navigate'
 
-          navigateStub = @sinon.stub @router, 'navigate'
+              @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4,null], {navigate: false}
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4,null], null, historyHasUpdated = true
+              expect(navigateStub).to.not.have.been.called
 
-          expect(navigateStub).to.not.have.been.called
+        context 'when current url is same as state url', ->
+          beforeEach ->
+            @manager = new (@managerProto.extend
+              _getWindowPath: -> 'a/1/b/2/c/3/d/4?f=g'
+            )(@router)
 
-        it 'should not fire navigate if transitionOptions.navigate is false', ->
-          manager = new @managerProto @router
+          it 'should not call navigate', ->
+            navigateStub = @sinon.stub @router, 'navigate'
 
-          navigateStub = @sinon.stub @router, 'navigate'
+            @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4, null]
 
-          manager._handleTransitionCallback 'test', manager.states.test, [1,2,3,4,null], {navigate: false}
+            expect(navigateStub).not.to.have.been.called
 
-          expect(navigateStub).to.not.have.been.called
+          it 'should not trigger navigate event', ->
+            triggerSpy = @sinon.spy(@manager, 'trigger').withArgs 'navigate'
+
+            @manager._handleTransitionCallback 'test', @manager.states.test, [1,2,3,4, null]
+
+            expect(triggerSpy).not.to.have.been.called
 
         it 'should hand correct params to callback in order, mimicking router params callback', ->
           manager = new @managerProto @router
@@ -559,7 +577,7 @@ describe 'Backbone.Manager.prototype', ->
 
           expect(callbackSpy).to.have.been.calledWithExactly '1', '2', '3', '4', null, sinon.match.object
 
-      context 'params is Object', ->
+      context 'when params is Object', ->
         before ->
           @paramsObj =
             id_2: 2
@@ -576,41 +594,61 @@ describe 'Backbone.Manager.prototype', ->
 
           expect(navigateStub).to.have.been.calledWith 'a/1/b/2/c/3/d/4?f=g'
 
-        it 'should call navigate', ->
-          manager = new @managerProto @router
+        context 'when current url is different from state url', ->
+          beforeEach ->
+            @manager = new (@managerProto.extend
+              _getWindowPath: -> 'abc'
+            )(@router)
 
-          navigateStub = @sinon.stub @router, 'navigate'
+          it 'should call navigate', ->
+            navigateStub = @sinon.stub @router, 'navigate'
 
-          manager._handleTransitionCallback 'test', manager.states.test, @paramsObj
+            @manager._handleTransitionCallback 'test', @manager.states.test, @paramsObj
 
-          expect(navigateStub).to.have.been.called
+            expect(navigateStub).to.have.been.called
 
-        it 'should trigger navigate', ->
-          manager = new @managerProto @router
+          it 'should trigger navigate event', ->
+            triggerSpy = @sinon.spy(@manager, 'trigger').withArgs 'navigate'
 
-          triggerSpy = @sinon.spy(manager, 'trigger').withArgs 'navigate'
+            @manager._handleTransitionCallback 'test', @manager.states.test, @paramsObj
 
-          manager._handleTransitionCallback 'test', manager.states.test, @paramsObj
+            expect(triggerSpy).to.have.been.called
 
-          expect(triggerSpy).to.have.been.called
+          context 'when historyHasUpdated', ->
+            it 'should not call navigate', ->
+              navigateStub = @sinon.stub @router, 'navigate'
 
-        it 'should not call navigate if history has already updated', ->
-          manager = new @managerProto @router
+              @manager._handleTransitionCallback 'test', @manager.states.test, @paramsObj, null, historyHasUpdated = true
 
-          navigateStub = @sinon.stub @router, 'navigate'
+              expect(navigateStub).to.not.have.been.called
 
-          manager._handleTransitionCallback 'test', manager.states.test, @paramsObj, null, historyHasUpdated = true
+          context 'when transitionOptions.navigate is false', ->
+            it 'should not call navigate', ->
+              navigateStub = @sinon.stub @router, 'navigate'
 
-          expect(navigateStub).to.not.have.been.called
+              @manager._handleTransitionCallback 'test', @manager.states.test, @paramsObj, {navigate: false}
 
-        it 'should not call navigate if transitionOptions.navigate is false', ->
-          manager = new @managerProto @router
+              expect(navigateStub).to.not.have.been.called
 
-          navigateStub = @sinon.stub @router, 'navigate'
+        context 'when current url is same as state url', ->
+          beforeEach ->
+            @manager = new (@managerProto.extend
+              _getWindowPath: -> 'a/1/b/2/c/3/d/4?f=g'
+            )(@router)
 
-          manager._handleTransitionCallback 'test', manager.states.test, @paramsObj, {navigate: false}
+          it 'should not call navigate', ->
+            navigateStub = @sinon.stub @router, 'navigate'
 
-          expect(navigateStub).to.not.have.been.called
+            @manager._handleTransitionCallback 'test', @manager.states.test, @paramsObj
+
+            expect(navigateStub).not.to.have.been.called
+
+          it 'should not trigger navigate event', ->
+            triggerSpy = @sinon.spy(@manager, 'trigger').withArgs 'navigate'
+
+            @manager._handleTransitionCallback 'test', @manager.states.test, @paramsObj
+
+            expect(triggerSpy).not.to.have.been.called
 
         it 'should hand correct params to callback in order', ->
           manager = new @managerProto @router
@@ -694,7 +732,7 @@ describe 'Backbone.Manager Closure Scope', ->
 
       expect(triggerStub).to.not.have.been.called
 
-    context 'no bb-state value', ->
+    context 'when no bb-state value', ->
       beforeEach ->
         @mockEvent =
           preventDefault: ->
@@ -720,7 +758,7 @@ describe 'Backbone.Manager Closure Scope', ->
 
         expect(goByUrlStub).to.have.been.calledWith 'http://a.com/a/1/b/2', {navigate: false}
 
-    context 'bb-state has value', ->
+    context 'when bb-state has value', ->
       it 'must add null to end of params for callback', ->
         @mockEvent =
           preventDefault: ->
