@@ -1,6 +1,6 @@
 /**
  * Backbone.Manager - State-Based Routing/Control Manager for Backbone
- * @version v2.0.3
+ * @version v2.0.4
  * @link https://github.com/novu/backbone.manager
  * @author Johnathon Sanders
  * @license MIT
@@ -125,14 +125,20 @@
             url += queryParams;
           }
           if (!historyHasUpdated && transitionOptions.navigate) {
-            this.router.navigate(url);
+            if (this._getWindowPath() !== url) {
+              this.router.navigate(url);
+              this.trigger('navigate');
+            }
           }
           data = _.map(_.initial(params), String);
           data.push(queryParams);
         } else if (params instanceof Object) {
           url = stateOptions._urlAsTemplate(params);
           if (!historyHasUpdated && transitionOptions.navigate) {
-            this.router.navigate(url);
+            if (this._getWindowPath() !== url) {
+              this.router.navigate(url);
+              this.trigger('navigate');
+            }
           }
           data = this.router._extractParameters(stateOptions._urlAsRegex, url);
         } else {
@@ -183,6 +189,10 @@
 
     Manager.prototype._getWindowHref = function() {
       return window != null ? window.location.href : void 0;
+    };
+
+    Manager.prototype._getWindowPath = function() {
+      return (window != null ? window.location.pathname.replace(/^\//, '') : void 0) + (window != null ? window.location.search : void 0);
     };
 
     Manager.go = function(state, params, transitionOptions) {
